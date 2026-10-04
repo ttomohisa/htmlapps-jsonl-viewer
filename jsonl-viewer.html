@@ -615,6 +615,7 @@
       <!-- APP:HELP:BEGIN -->
       <h3 data-i18n="helpBasicsTitle">基本操作</h3>
       <ol><li data-i18n="helpStep1">JSONL / NDJSONファイルを選択またはドロップします。</li><li data-i18n="helpStep2">解析が終わると、正常行・確認が必要な行・フィールド構成を確認できます。</li><li data-i18n="helpStep3">Table / Recordを切り替え、ページ単位で内容を確認します。問題行をクリックすると該当ページへ移動します。</li><li data-i18n="helpStep4">現在ページをJSONLとしてコピー、またはCSVとしてコピー・保存できます。</li></ol>
+      <p data-i18n="helpCancel">解析中のタブを閉じるとその解析を中止し、残りのファイルの解析を続けます。</p>
       <h3 data-i18n="helpPrivacyTitle">プライバシー</h3><p data-i18n="helpPrivacyBody">読み込んだファイルはブラウザー内だけで解析します。このアプリから外部サーバーへ送信しません。</p>
       <h3 data-i18n="helpNotesTitle">注意事項</h3>
       <ul><li data-i18n="helpNoteUtf8">JSON LinesはUTF-8を前提として解析します。</li><li data-i18n="helpNoteReadOnly">閲覧専用です。元のファイルを書き換えません。</li><li data-i18n="helpNoteIssues">問題のある行があっても、正常な行は引き続き確認できます。</li><li data-i18n="helpNoteFields">フィールド集計はトップレベルのオブジェクトを対象にします。配列やプリミティブは __value として扱います。</li><li data-i18n="helpNoteCsv">CSV出力はファイル全体ではなく、現在表示しているページが対象です。</li><li data-i18n="helpNoteCopyJsonl">JSONLコピーは現在ページの正常な行だけを対象にします。</li><li data-i18n="helpNoteGzip">gzip圧縮された .jsonl.gz / .ndjson.gz は現在のバージョンでは直接読み込みません。</li></ul>
@@ -638,7 +639,7 @@
       'use strict';
 
       const APP_CONFIG = {"$schema":"./schemas/app-config.schema.json","name":"JSONL Viewer","nameJa":"JSONL Viewer","slug":"jsonl-viewer","version":"1.0.0","description":"Open JSONL and NDJSON files locally, inspect records, find invalid lines, and review field types.","descriptionJa":"JSONL / NDJSONファイルをブラウザー内で開き、レコード・不正行・フィールド構成・型の混在を確認します。","defaultLanguage":"auto","repository":{"owner":"ttomohisa","name":"htmlapps-jsonl-viewer"},"build":{"output":"dist/index.html","blockRuntimeNetwork":true,"selfExtract":{"enabled":true,"output":"dist/index.self-extract.html"},"sizeBudget":{"readableWarningMb":10,"selfExtractWarningMb":6}}};
-      const BUILD_MANIFEST = {"schemaVersion":2,"builder":"single-html-app-template/1.2","generatedAtUtc":"2026-09-07T23:43:00.7340069Z","app":{"name":"JSONL Viewer","slug":"jsonl-viewer","version":"1.0.0"},"dependencies":[]};
+      const BUILD_MANIFEST = {"schemaVersion":2,"builder":"single-html-app-template/1.2","generatedAtUtc":"2026-10-03T23:59:58.9284868Z","app":{"name":"JSONL Viewer","slug":"jsonl-viewer","version":"1.0.0"},"dependencies":[]};
       const assetBundle = {"schemaVersion":2,"dependencies":{}};
       const blobUrls = new Set();
       const assetByteCache = new Map();
@@ -667,7 +668,7 @@
           analyzing:'ファイルを解析中…', issuesTitle:'確認が必要な行', fieldsCount:'{count}フィールド', noFields:'トップレベルのフィールドは見つかりませんでした。', fieldName:'フィールド', occurrence:'出現率', types:'型', values:'出現数', typeMixed:'型が混在', fieldLimit:'フィールドが多いため、先頭{count}件まで集計しています。',
           tableView:'Table', recordView:'Record', columns:'列', rowsPerPage:'1ページの行数', loadingRecords:'行を読み込み中…', previous:'前へ', next:'次へ', previousPage:'前のページ', nextPage:'次のページ', pageNumber:'ページ番号',
           outputFilename:'CSVファイル名', copyJsonl:'JSONLをコピー', copyCsv:'CSVをコピー', downloadCsv:'CSVを保存',
-          helpTitle:'使い方と注意事項', close:'閉じる', helpBasicsTitle:'基本操作', helpStep1:'JSONL / NDJSONファイルを選択またはドロップします。', helpStep2:'解析が終わると、正常行・確認が必要な行・フィールド構成を確認できます。', helpStep3:'Table / Recordを切り替え、ページ単位で内容を確認します。問題行をクリックすると該当ページへ移動します。', helpStep4:'現在ページをJSONLとしてコピー、またはCSVとしてコピー・保存できます。', helpPrivacyTitle:'プライバシー', helpPrivacyBody:'読み込んだファイルはブラウザー内だけで解析します。このアプリから外部サーバーへ送信しません。', helpNotesTitle:'注意事項', helpNoteUtf8:'JSON LinesはUTF-8を前提として解析します。', helpNoteReadOnly:'閲覧専用です。元のファイルを書き換えません。', helpNoteIssues:'問題のある行があっても、正常な行は引き続き確認できます。', helpNoteFields:'フィールド集計はトップレベルのオブジェクトを対象にします。配列やプリミティブは __value として扱います。', helpNoteCsv:'CSV出力はファイル全体ではなく、現在表示しているページが対象です。', helpNoteCopyJsonl:'JSONLコピーは現在ページの正常な行だけを対象にします。', helpNoteGzip:'gzip圧縮された .jsonl.gz / .ndjson.gz は現在のバージョンでは直接読み込みません。', helpOffline:'配布用HTMLは実行時の外部通信を必要とせず、ローカルファイルとして直接開けます。',
+          helpTitle:'使い方と注意事項', close:'閉じる', helpBasicsTitle:'基本操作', helpStep1:'JSONL / NDJSONファイルを選択またはドロップします。', helpStep2:'解析が終わると、正常行・確認が必要な行・フィールド構成を確認できます。', helpStep3:'Table / Recordを切り替え、ページ単位で内容を確認します。問題行をクリックすると該当ページへ移動します。', helpStep4:'現在ページをJSONLとしてコピー、またはCSVとしてコピー・保存できます。', helpPrivacyTitle:'プライバシー', helpPrivacyBody:'読み込んだファイルはブラウザー内だけで解析します。このアプリから外部サーバーへ送信しません。', helpNotesTitle:'注意事項', helpNoteUtf8:'JSON LinesはUTF-8を前提として解析します。', helpCancel:'解析中のタブを閉じるとその解析を中止し、残りのファイルの解析を続けます。', helpNoteReadOnly:'閲覧専用です。元のファイルを書き換えません。', helpNoteIssues:'問題のある行があっても、正常な行は引き続き確認できます。', helpNoteFields:'フィールド集計はトップレベルのオブジェクトを対象にします。配列やプリミティブは __value として扱います。', helpNoteCsv:'CSV出力はファイル全体ではなく、現在表示しているページが対象です。', helpNoteCopyJsonl:'JSONLコピーは現在ページの正常な行だけを対象にします。', helpNoteGzip:'gzip圧縮された .jsonl.gz / .ndjson.gz は現在のバージョンでは直接読み込みません。', helpOffline:'配布用HTMLは実行時の外部通信を必要とせず、ローカルファイルとして直接開けます。',
           cellDetails:'セルの内容', lineLabel:'行', fieldLabel:'フィールド', typeLabel:'型', copyValue:'値をコピー', columnsTitle:'表示する列', showAllColumns:'すべて表示', done:'完了',
           summarySize:'ファイルサイズ', summaryLines:'行数', summaryValid:'正常', summaryIssues:'要確認', detailFields:'フィールド', detailFormat:'形式', detailEncoding:'文字コード', detailLineEnding:'改行', detailBom:'UTF-8 BOM', detailObjects:'Object行', detailOtherValues:'その他のJSON値', yes:'あり', no:'なし', utf8:'UTF-8', formatJsonl:'JSONL / NDJSON', lineEndingLf:'LF', lineEndingCrlf:'CRLF', lineEndingMixed:'混在', lineEndingNone:'なし',
           statusReady:'解析が完了しました。', statusIssues:'{count}行を確認してください。正常な行はそのまま閲覧できます。', statusAnalyzing:'{name} を解析しています…', unsupportedFile:'JSONL / NDJSONファイルを選択してください。', gzipUnsupported:'gzip圧縮ファイルは現在のバージョンでは直接読み込めません。', analysisFailed:'ファイルを解析できませんでした。', readFailed:'データを読み込めませんでした。', emptyFile:'ファイルに行がありません。',
@@ -684,7 +685,7 @@
           analyzing:'Analyzing file…', issuesTitle:'Lines to review', fieldsCount:'{count} fields', noFields:'No top-level fields were found.', fieldName:'Field', occurrence:'Presence', types:'Types', values:'Values', typeMixed:'Mixed types', fieldLimit:'There are many fields. Only the first {count} are summarized.',
           tableView:'Table', recordView:'Record', columns:'Columns', rowsPerPage:'Rows per page', loadingRecords:'Loading lines…', previous:'Previous', next:'Next', previousPage:'Previous page', nextPage:'Next page', pageNumber:'Page number',
           outputFilename:'CSV filename', copyJsonl:'Copy JSONL', copyCsv:'Copy CSV', downloadCsv:'Save CSV',
-          helpTitle:'How to use & notes', close:'Close', helpBasicsTitle:'Basics', helpStep1:'Choose or drop a JSONL / NDJSON file.', helpStep2:'After analysis, review valid lines, lines needing attention, and detected fields.', helpStep3:'Switch between Table and Record views and move through pages. Click an issue to jump to its page.', helpStep4:'Copy the current page as JSONL, or copy/save it as CSV.', helpPrivacyTitle:'Privacy', helpPrivacyBody:'Selected files are analyzed only in your browser. This app does not send them to an external server.', helpNotesTitle:'Notes', helpNoteUtf8:'JSON Lines is parsed as UTF-8.', helpNoteReadOnly:'This is read-only. The source file is not modified.', helpNoteIssues:'Valid lines remain available even when other lines have problems.', helpNoteFields:'Field statistics cover top-level objects. Arrays and primitive values are represented as __value.', helpNoteCsv:'CSV output covers the current page, not the entire file.', helpNoteCopyJsonl:'Copy JSONL includes only valid lines from the current page.', helpNoteGzip:'.jsonl.gz / .ndjson.gz files are not opened directly in the current version.', helpOffline:'The distributable HTML requires no runtime network connection and can be opened directly as a local file.',
+          helpTitle:'How to use & notes', close:'Close', helpBasicsTitle:'Basics', helpStep1:'Choose or drop a JSONL / NDJSON file.', helpStep2:'After analysis, review valid lines, lines needing attention, and detected fields.', helpStep3:'Switch between Table and Record views and move through pages. Click an issue to jump to its page.', helpStep4:'Copy the current page as JSONL, or copy/save it as CSV.', helpPrivacyTitle:'Privacy', helpPrivacyBody:'Selected files are analyzed only in your browser. This app does not send them to an external server.', helpNotesTitle:'Notes', helpNoteUtf8:'JSON Lines is parsed as UTF-8.', helpCancel:'Close an analyzing tab to cancel its scan. The remaining files continue to be analyzed.', helpNoteReadOnly:'This is read-only. The source file is not modified.', helpNoteIssues:'Valid lines remain available even when other lines have problems.', helpNoteFields:'Field statistics cover top-level objects. Arrays and primitive values are represented as __value.', helpNoteCsv:'CSV output covers the current page, not the entire file.', helpNoteCopyJsonl:'Copy JSONL includes only valid lines from the current page.', helpNoteGzip:'.jsonl.gz / .ndjson.gz files are not opened directly in the current version.', helpOffline:'The distributable HTML requires no runtime network connection and can be opened directly as a local file.',
           cellDetails:'Cell contents', lineLabel:'Line', fieldLabel:'Field', typeLabel:'Type', copyValue:'Copy value', columnsTitle:'Visible columns', showAllColumns:'Show all', done:'Done',
           summarySize:'File size', summaryLines:'Lines', summaryValid:'Valid', summaryIssues:'Review', detailFields:'Fields', detailFormat:'Format', detailEncoding:'Encoding', detailLineEnding:'Line endings', detailBom:'UTF-8 BOM', detailObjects:'Object lines', detailOtherValues:'Other JSON values', yes:'Yes', no:'No', utf8:'UTF-8', formatJsonl:'JSONL / NDJSON', lineEndingLf:'LF', lineEndingCrlf:'CRLF', lineEndingMixed:'Mixed', lineEndingNone:'None',
           statusReady:'Analysis complete.', statusIssues:'Review {count} lines. Valid lines remain available.', statusAnalyzing:'Analyzing {name}…', unsupportedFile:'Choose a JSONL / NDJSON file.', gzipUnsupported:'gzip-compressed files are not opened directly in the current version.', analysisFailed:'Could not analyze this file.', readFailed:'Could not load data.', emptyFile:'The file contains no lines.',
@@ -778,17 +779,21 @@
       async function analyzeFile(fileState){
         fileState.analyzing=true;fileState.progress=0;fileState.error='';fileState.dataError='';if(getActiveFile()?.id===fileState.id)renderActive();
         const workerUrl=URL.createObjectURL(new Blob([workerSource()],{type:'text/javascript'}));
-        const worker=new Worker(workerUrl);fileState.worker=worker;
+        let worker=null,cancelled=false;
         try{
+          worker=new Worker(workerUrl);fileState.worker=worker;
           const analysis=await new Promise((resolve,reject)=>{
-            worker.onmessage=event=>{const msg=event.data;if(msg.type==='progress'){fileState.progress=msg.progress;if(getActiveFile()?.id===fileState.id)renderAnalysisProgress(fileState);}else if(msg.type==='done')resolve(msg.analysis);else if(msg.type==='error')reject(new Error(msg.message));};
-            worker.onerror=event=>reject(new Error(event.message||'Worker error'));
+            // Closing a tab must settle the batch await as well as stop its worker.
+            fileState.cancelAnalysis=()=>{cancelled=true;worker.terminate();resolve(null);};
+            worker.onmessage=event=>{if(cancelled||!state.files.includes(fileState))return;const msg=event.data;if(msg.type==='progress'){fileState.progress=msg.progress;if(getActiveFile()?.id===fileState.id)renderAnalysisProgress(fileState);}else if(msg.type==='done')resolve(msg.analysis);else if(msg.type==='error')reject(new Error(msg.message));};
+            worker.onerror=event=>{if(!cancelled&&state.files.includes(fileState))reject(new Error(event.message||'Worker error'));};
             worker.postMessage({file:fileState.file});
           });
+          if(cancelled||!state.files.includes(fileState))return;
           fileState.analysis=analysis;fileState.analyzing=false;fileState.progress=100;prepareFields(fileState);fileState.outputFilename=`${basename(fileState.file.name)}-preview`;fileState.page=1;
           await readPage(fileState);
           if(getActiveFile()?.id===fileState.id){if(!analysis.totalLines)setStatus(t('emptyFile'),'warning');else setStatus(analysis.invalid?t('statusIssues',{count:formatNumber(analysis.invalid)}):t('statusReady'),analysis.invalid?'warning':'info');}
-        }finally{worker.terminate();URL.revokeObjectURL(workerUrl);fileState.worker=null;}
+        }finally{if(worker){worker.onmessage=null;worker.onerror=null;worker.terminate();}URL.revokeObjectURL(workerUrl);fileState.worker=null;fileState.cancelAnalysis=null;fileState.analyzing=false;}
       }
 
       function prepareFields(fileState){
@@ -801,16 +806,17 @@
         const supported=[];let gzipCount=0,unsupportedCount=0;
         for(const file of incoming){if(/\.(jsonl|ndjson)\.gz$/i.test(file.name)){gzipCount++;continue;}if(!supportedName(file.name)){unsupportedCount++;continue;}supported.push(file);}
         if(gzipCount)toast(t('gzipUnsupported'));if(unsupportedCount)toast(t('unsupportedFile'));if(!supported.length)return;
-        const added=supported.map(file=>({id:createId(),file,analysis:null,fields:[],rows:[],page:1,pageSize:100,viewMode:'table',hiddenFields:new Set(),sort:null,analyzing:false,progress:0,error:'',dataError:'',outputFilename:`${basename(file.name)}-preview`,worker:null}));
+        const added=supported.map(file=>({id:createId(),file,analysis:null,fields:[],rows:[],page:1,pageSize:100,viewMode:'table',hiddenFields:new Set(),sort:null,analyzing:false,progress:0,error:'',dataError:'',outputFilename:`${basename(file.name)}-preview`,worker:null,cancelAnalysis:null}));
         state.files.push(...added);state.activeId=added[0].id;setLoadedUi(true);renderFileManager();renderActive();
         for(const fileState of added){
+          if(!state.files.includes(fileState))continue;
           try{await analyzeFile(fileState);}catch(error){fileState.analyzing=false;fileState.error=error?.message||t('analysisFailed');}
           renderFileManager();if(getActiveFile()?.id===fileState.id)renderActive();
         }
         if(getActiveFile()?.id===added[0].id)renderActive();
       }
 
-      function removeFile(id){const index=state.files.findIndex(item=>item.id===id);if(index<0)return;const [removed]=state.files.splice(index,1);removed.worker?.terminate();if(state.activeId===id)state.activeId=state.files[Math.min(index,state.files.length-1)]?.id||null;state.generation+=1;setLoadedUi(Boolean(state.files.length));renderFileManager();renderActive();}
+      function removeFile(id){const index=state.files.findIndex(item=>item.id===id);if(index<0)return;const [removed]=state.files.splice(index,1);removed.cancelAnalysis?.();if(state.activeId===id)state.activeId=state.files[Math.min(index,state.files.length-1)]?.id||null;state.generation+=1;setLoadedUi(Boolean(state.files.length));renderFileManager();renderActive();}
 
       async function activateFile(id){
         const fileState=state.files.find(item=>item.id===id);if(!fileState)return;
