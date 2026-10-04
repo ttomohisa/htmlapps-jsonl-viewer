@@ -28,6 +28,7 @@
 - Empty lines are flagged as review-needed instead of stopping the whole file.
 - Malformed JSON lines are flagged while valid lines remain available.
 - Full-file analysis runs in a Blob Worker to avoid blocking the UI.
+- Closing an analyzing tab cancels its scan, releases its worker/Blob URL, and continues the remaining batch. Closed queued tabs are skipped; late results cannot restore closed-file state.
 - Analysis stores checkpoints every 1,000 lines instead of retaining every parsed record.
 - Page reads use the nearest checkpoint and `File.slice()` so the app only parses the requested page plus a small lead-in.
 - Page sizes: 50 / 100 / 250 / 500 / 1,000.

@@ -32,3 +32,16 @@ The starter does not enable WebRTC by default. If the application copies `compon
 
 `connect-src 'none'` remains expected. The direct WebRTC DataChannel is intentional peer-to-peer application traffic, not a hidden runtime dependency.
 
+
+## Automated browser regressions
+
+After the repository check builds both variants, run these with Node.js, Playwright available on the module path, and Microsoft Edge installed:
+
+```powershell
+node scripts/test-cancellation.cjs
+node scripts/test-browser-smoke.cjs
+```
+
+Set `NODE_PATH` to an existing Playwright installation when it is outside the repository; `BROWSER_CHANNEL` defaults to `msedge` and can select another installed Chromium channel. These are development-only tools, not runtime dependencies.
+
+The cancellation test delays the first real Worker, removes an active and a queued tab, checks that the remaining file renders, replays stale callbacks, and checks Worker/Blob URL cleanup. The smoke test uses normal Workers for mixed and empty inputs, chunked large-file paging, CSV export, language switching, keyboard dialogs, mobile width, and reload. Both variants are opened using `file://`, with external HTTP requests blocked and reported.

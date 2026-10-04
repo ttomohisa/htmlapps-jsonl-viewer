@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fix closing an analyzing file leaving the rest of a multi-file batch waiting indefinitely. Release cancelled worker URLs, skip closed queued files, and ignore late cancelled-worker callbacks.
+
 ## v1.0.0 - 2026-09-04
 
 - First stable release.

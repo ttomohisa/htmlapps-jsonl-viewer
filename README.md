@@ -24,7 +24,7 @@ GitHub Pages delivers the initial HTML. After it loads, selected files are read 
 - **Avoid holding every parsed record** — Store sparse checkpoints during the initial scan and re-read only the requested page.
 - **Switch between Table and Record views** — Inspect current-page data as columns or pretty-printed JSON, with Cell Inspector for full values.
 - **Export the current page** — Copy valid current-page records as JSONL, or copy/save the current page as CSV.
-- **Work with multiple files** — Open several files with analysis status, issues, and data isolated per file tab.
+- **Work with multiple files** — Open several files with analysis status, issues, and data isolated per file tab. Close an analyzing tab to cancel its scan while remaining files continue.
 
 ## Quick start
 
