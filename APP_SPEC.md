@@ -29,6 +29,9 @@
 - Malformed JSON lines are flagged while valid lines remain available.
 - Full-file analysis runs in a Blob Worker to avoid blocking the UI.
 - Closing an analyzing tab cancels its scan, releases its worker/Blob URL, and continues the remaining batch. Closed queued tabs are skipped; late results cannot restore closed-file state.
+- Closing the active tab activates and loads the successor page just like selecting its tab; visited tabs keep their page, view, columns, sort, and filename.
+- Page reads have current-file/request ownership. Background analysis, inactive-tab removal, and obsolete read success/error/finalization cannot replace or unlock a newer page.
+- Copy/save are disabled during analysis or page loading, after a read failure, and when no rows are loaded. JSONL copy additionally needs a valid record; CSV remains available for review-needed rows. Selecting a tab again retries a failed page read.
 - Analysis stores checkpoints every 1,000 lines instead of retaining every parsed record.
 - Page reads use the nearest checkpoint and `File.slice()` so the app only parses the requested page plus a small lead-in.
 - Page sizes: 50 / 100 / 250 / 500 / 1,000.
@@ -98,3 +101,11 @@ Current stable Chromium, Firefox, and Safari where File API, Blob Worker, TextDe
 - 50 / 100 / 250 / 500 / 1,000 row paging works.
 - Current-page CSV and valid-line JSONL copy work.
 - Multiple files, Japanese/English, help, dialogs, mobile tabs, and CSP remain functional.
+
+## 10. File/page phases
+
+- Queued / analyzing: clear the prior preview and disable page export.
+- Loading: materialize only the active file’s page, clear old rows, and keep export disabled.
+- Ready: show the current rows and enable applicable exports. An empty file remains non-exportable.
+- Read error: show the file-scoped error without old rows; reselecting the tab retries.
+- Closing / switching: invalidate obsolete reads, preserve completed pages, and activate the successor when present. Closing the last tab returns to the empty state.

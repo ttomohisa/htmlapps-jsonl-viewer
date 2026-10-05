@@ -242,3 +242,13 @@ if (-not $webrtcReadyText.Contains("options.requireReadyChannelOpen!==false&&(!r
   throw "WebRTC application-ready must wait for the designated DataChannel to open."
 }
 
+
+# Dependency-free application regression checks; browser integration is separate.
+if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
+  throw "Node.js 22 or newer is required for the application lifecycle checks."
+}
+& node (Join-Path $Root "scripts/test-file-lifecycle.cjs") (Join-Path $Root "src/index.template.html") (Join-Path $Root "dist/index.html") (Join-Path $Root "jsonl-viewer.html") (Join-Path $Root "dist/index.self-extract.html")
+if ($LASTEXITCODE -ne 0) { throw "Application file lifecycle regression checks failed." }
+& node (Join-Path $Root "scripts/test-release-parity.cjs")
+if ($LASTEXITCODE -ne 0) { throw "Release artifact parity checks failed." }
+Write-Host "[OK] Application lifecycle and release parity checks passed." -ForegroundColor Green
