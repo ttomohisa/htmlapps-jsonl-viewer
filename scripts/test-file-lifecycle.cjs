@@ -10,6 +10,8 @@ const { File } = require('node:buffer');
 // No browser: minimal DOM/Worker adapters execute the app's unchanged functions.
 class Element {
   constructor(tag = 'div') { this.tagName = tag; this.children = []; this.dataset = {}; this.style = {}; this.listeners = {}; this.value = ''; this.hidden = false; this.disabled = false; this._text = ''; this.classes = new Set(); this.classList = { add: (...xs) => xs.forEach(x => this.classes.add(x)), remove: (...xs) => xs.forEach(x => this.classes.delete(x)), contains: x => this.classes.has(x), toggle: (x, force) => { const on = force === undefined ? !this.classes.has(x) : force; if (on) this.classes.add(x); else this.classes.delete(x); return on; } }; }
+  set value(v) { this._value = this.tagName === 'textarea' ? String(v).replace(/\r\n?/g, '\n') : v; }
+  get value() { return this._value; }
   set textContent(v) { this._text = String(v); this.children = []; }
   get textContent() { return this._text + this.children.map(x => x.textContent).join(''); }
   set className(v) { this.classes = new Set(v.split(/\s+/)); }
@@ -34,7 +36,7 @@ function harness(path, opts = {}) {
   const config = fs.readFileSync(require('node:path').join(__dirname, '..', 'app.config.json'), 'utf8');
   code = code.replace('__APP_CONFIG_JSON__', config).replace('__BUILD_MANIFEST_JSON__', '{}').replace('__EMBEDDED_ASSET_BUNDLE_JSON__', '{"dependencies":{}}');
   code = code.replace('      $(\'#versionBadge\').textContent=', '      globalThis.api={state,addFiles,removeFile,activateFile,readPage,analyzeFile,prepareFields,sortRows,cycleSort,buildCurrentCsv,buildCurrentJsonl,visibleFields,renderActive,renderData,normalizedFilenameBase,downloadCsv,copyJsonl,copyCsv,workerSource};\n      $(\'#versionBadge\').textContent=');
-  const nodes = new Map(), workers = [], blobs = new Map(), downloads = [], copies = [];
+  const nodes = new Map(), workers = [], blobs = new Map(), downloads = [], copies = [], fallbackCopies = [];
   const node = id => { if (!nodes.has(id)) nodes.set(id, new Element()); return nodes.get(id); };
   class WorkerAdapter {
     constructor(url) { this.url = url; this.terminated = false; workers.push(this); }
@@ -62,12 +64,12 @@ function harness(path, opts = {}) {
       return [];
     },
     createElement(tag) { const el = new Element(tag); if (tag === 'a') el.click = () => downloads.push({ filename: el.download, blob: blobs.get(el.href) }); return el; },
-    execCommand() { return true; }
+    execCommand() { fallbackCopies.push(document.body.children.at(-1).value); if (opts.fallbackError) throw opts.fallbackError; return opts.fallbackResult ?? true; }
   };
-  const context = { document, navigator: { languages: ['en'], clipboard: { writeText: async text => copies.push(text) } }, localStorage: { getItem() { return null; }, setItem() {} }, URL: { createObjectURL(blob) { const key = `blob:unit-${blobs.size}-${Math.random()}`; blobs.set(key, blob); return key; }, revokeObjectURL(url) { blobs.delete(url); } }, Worker: WorkerAdapter, Blob, File, TextDecoder, TextEncoder, Uint8Array, Intl, console, setTimeout() { return 1; }, clearTimeout() {}, requestAnimationFrame: fn => fn(), addEventListener() {}, scrollTo() {} };
+  const context = { document, navigator: { languages: ['en'], clipboard: { writeText: async text => { copies.push(text); return opts.writeText?.(text); } } }, localStorage: { getItem() { return null; }, setItem() {} }, URL: { createObjectURL(blob) { const key = `blob:unit-${blobs.size}-${Math.random()}`; blobs.set(key, blob); return key; }, revokeObjectURL(url) { blobs.delete(url); } }, Worker: WorkerAdapter, Blob, File, TextDecoder, TextEncoder, Uint8Array, Intl, console, setTimeout() { return 1; }, clearTimeout() {}, requestAnimationFrame: fn => fn(), addEventListener() {}, scrollTo() {} };
   context.window = context;
   vm.createContext(context); vm.runInContext(code, context, { filename: path });
-  return { api: context.api, node, document, workers, blobs, downloads, copies };
+  return { api: context.api, node, document, workers, blobs, downloads, copies, fallbackCopies };
 }
 const file = (name, text) => new File([text], name, { type: 'application/x-ndjson' });
 const tick = () => new Promise(resolve => setImmediate(resolve));
@@ -82,8 +84,9 @@ function deferReads(f) {
   f.file = { name: original.name, size: original.size, slice(start, end) { return { arrayBuffer() { return new Promise((resolve, reject) => requests.push({ resolve: async () => resolve(await original.slice(start, end).arrayBuffer()), reject })); } }; } };
   return { requests, restore() { f.file = original; } };
 }
+module.exports = { harness, file, descendants, tick, settle, deferReads };
 const artifacts = process.argv.slice(2);
-for (const artifact of artifacts.length ? artifacts : [path.join(__dirname, '..', 'src/index.template.html')]) {
+if (require.main === module) for (const artifact of artifacts.length ? artifacts : [path.join(__dirname, '..', 'src/index.template.html')]) {
   test(`${artifact}: closing active file loads unvisited successor and export contents`, async () => {
     const h = await pair(artifact), [a, b] = h.api.state.files;
     assert.equal(a.rows.length, 1); assert.equal(b.analysis.totalLines, 3); assert.equal(b.rows.length, 0);

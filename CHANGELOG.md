@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add per-record Copy JSON in Record view, preserving the original valid line text and rejecting stale file/page actions and feedback.
+- Fix top-level Record strings losing their JSON quotes and escapes, while preserving Cell Inspector string behavior.
+- Add synthetic record-copy, clipboard-failure, lifecycle, and release-variant regressions with English/Japanese labels and help.
+
 - Load the newly active file page when closing a tab, including files analyzed in the background. Preserve visited-file settings.
 - Keep copy/save unavailable while a page is pending or failed; ignore stale page-read callbacks and preserve active reads when an inactive tab closes. Add source-level lifecycle and release-parity regression checks.
 
