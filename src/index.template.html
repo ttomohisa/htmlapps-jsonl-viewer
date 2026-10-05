@@ -616,6 +616,7 @@
       <h3 data-i18n="helpBasicsTitle">基本操作</h3>
       <ol><li data-i18n="helpStep1">JSONL / NDJSONファイルを選択またはドロップします。</li><li data-i18n="helpStep2">解析が終わると、正常行・確認が必要な行・フィールド構成を確認できます。</li><li data-i18n="helpStep3">Table / Recordを切り替え、ページ単位で内容を確認します。問題行をクリックすると該当ページへ移動します。</li><li data-i18n="helpStep4">現在ページをJSONLとしてコピー、またはCSVとしてコピー・保存できます。</li></ol>
       <p data-i18n="helpCancel">解析中のタブを閉じるとその解析を中止し、残りのファイルの解析を続けます。</p>
+      <p data-i18n="helpSuccessor">表示中のタブを閉じると次のファイルのページを読み込みます。読み込み中や読み込み失敗時はコピー・保存できません。失敗したページはタブを選び直すと再読み込みできます。</p>
       <h3 data-i18n="helpPrivacyTitle">プライバシー</h3><p data-i18n="helpPrivacyBody">読み込んだファイルはブラウザー内だけで解析します。このアプリから外部サーバーへ送信しません。</p>
       <h3 data-i18n="helpNotesTitle">注意事項</h3>
       <ul><li data-i18n="helpNoteUtf8">JSON LinesはUTF-8を前提として解析します。</li><li data-i18n="helpNoteReadOnly">閲覧専用です。元のファイルを書き換えません。</li><li data-i18n="helpNoteIssues">問題のある行があっても、正常な行は引き続き確認できます。</li><li data-i18n="helpNoteFields">フィールド集計はトップレベルのオブジェクトを対象にします。配列やプリミティブは __value として扱います。</li><li data-i18n="helpNoteCsv">CSV出力はファイル全体ではなく、現在表示しているページが対象です。</li><li data-i18n="helpNoteCopyJsonl">JSONLコピーは現在ページの正常な行だけを対象にします。</li><li data-i18n="helpNoteGzip">gzip圧縮された .jsonl.gz / .ndjson.gz は現在のバージョンでは直接読み込みません。</li></ul>
@@ -668,7 +669,7 @@
           analyzing:'ファイルを解析中…', issuesTitle:'確認が必要な行', fieldsCount:'{count}フィールド', noFields:'トップレベルのフィールドは見つかりませんでした。', fieldName:'フィールド', occurrence:'出現率', types:'型', values:'出現数', typeMixed:'型が混在', fieldLimit:'フィールドが多いため、先頭{count}件まで集計しています。',
           tableView:'Table', recordView:'Record', columns:'列', rowsPerPage:'1ページの行数', loadingRecords:'行を読み込み中…', previous:'前へ', next:'次へ', previousPage:'前のページ', nextPage:'次のページ', pageNumber:'ページ番号',
           outputFilename:'CSVファイル名', copyJsonl:'JSONLをコピー', copyCsv:'CSVをコピー', downloadCsv:'CSVを保存',
-          helpTitle:'使い方と注意事項', close:'閉じる', helpBasicsTitle:'基本操作', helpStep1:'JSONL / NDJSONファイルを選択またはドロップします。', helpStep2:'解析が終わると、正常行・確認が必要な行・フィールド構成を確認できます。', helpStep3:'Table / Recordを切り替え、ページ単位で内容を確認します。問題行をクリックすると該当ページへ移動します。', helpStep4:'現在ページをJSONLとしてコピー、またはCSVとしてコピー・保存できます。', helpPrivacyTitle:'プライバシー', helpPrivacyBody:'読み込んだファイルはブラウザー内だけで解析します。このアプリから外部サーバーへ送信しません。', helpNotesTitle:'注意事項', helpNoteUtf8:'JSON LinesはUTF-8を前提として解析します。', helpCancel:'解析中のタブを閉じるとその解析を中止し、残りのファイルの解析を続けます。', helpNoteReadOnly:'閲覧専用です。元のファイルを書き換えません。', helpNoteIssues:'問題のある行があっても、正常な行は引き続き確認できます。', helpNoteFields:'フィールド集計はトップレベルのオブジェクトを対象にします。配列やプリミティブは __value として扱います。', helpNoteCsv:'CSV出力はファイル全体ではなく、現在表示しているページが対象です。', helpNoteCopyJsonl:'JSONLコピーは現在ページの正常な行だけを対象にします。', helpNoteGzip:'gzip圧縮された .jsonl.gz / .ndjson.gz は現在のバージョンでは直接読み込みません。', helpOffline:'配布用HTMLは実行時の外部通信を必要とせず、ローカルファイルとして直接開けます。',
+          helpTitle:'使い方と注意事項', close:'閉じる', helpBasicsTitle:'基本操作', helpStep1:'JSONL / NDJSONファイルを選択またはドロップします。', helpStep2:'解析が終わると、正常行・確認が必要な行・フィールド構成を確認できます。', helpStep3:'Table / Recordを切り替え、ページ単位で内容を確認します。問題行をクリックすると該当ページへ移動します。', helpStep4:'現在ページをJSONLとしてコピー、またはCSVとしてコピー・保存できます。', helpPrivacyTitle:'プライバシー', helpPrivacyBody:'読み込んだファイルはブラウザー内だけで解析します。このアプリから外部サーバーへ送信しません。', helpNotesTitle:'注意事項', helpNoteUtf8:'JSON LinesはUTF-8を前提として解析します。', helpCancel:'解析中のタブを閉じるとその解析を中止し、残りのファイルの解析を続けます。', helpSuccessor:'表示中のタブを閉じると次のファイルのページを読み込みます。読み込み中や読み込み失敗時はコピー・保存できません。失敗したページはタブを選び直すと再読み込みできます。', helpNoteReadOnly:'閲覧専用です。元のファイルを書き換えません。', helpNoteIssues:'問題のある行があっても、正常な行は引き続き確認できます。', helpNoteFields:'フィールド集計はトップレベルのオブジェクトを対象にします。配列やプリミティブは __value として扱います。', helpNoteCsv:'CSV出力はファイル全体ではなく、現在表示しているページが対象です。', helpNoteCopyJsonl:'JSONLコピーは現在ページの正常な行だけを対象にします。', helpNoteGzip:'gzip圧縮された .jsonl.gz / .ndjson.gz は現在のバージョンでは直接読み込みません。', helpOffline:'配布用HTMLは実行時の外部通信を必要とせず、ローカルファイルとして直接開けます。',
           cellDetails:'セルの内容', lineLabel:'行', fieldLabel:'フィールド', typeLabel:'型', copyValue:'値をコピー', columnsTitle:'表示する列', showAllColumns:'すべて表示', done:'完了',
           summarySize:'ファイルサイズ', summaryLines:'行数', summaryValid:'正常', summaryIssues:'要確認', detailFields:'フィールド', detailFormat:'形式', detailEncoding:'文字コード', detailLineEnding:'改行', detailBom:'UTF-8 BOM', detailObjects:'Object行', detailOtherValues:'その他のJSON値', yes:'あり', no:'なし', utf8:'UTF-8', formatJsonl:'JSONL / NDJSON', lineEndingLf:'LF', lineEndingCrlf:'CRLF', lineEndingMixed:'混在', lineEndingNone:'なし',
           statusReady:'解析が完了しました。', statusIssues:'{count}行を確認してください。正常な行はそのまま閲覧できます。', statusAnalyzing:'{name} を解析しています…', unsupportedFile:'JSONL / NDJSONファイルを選択してください。', gzipUnsupported:'gzip圧縮ファイルは現在のバージョンでは直接読み込めません。', analysisFailed:'ファイルを解析できませんでした。', readFailed:'データを読み込めませんでした。', emptyFile:'ファイルに行がありません。',
@@ -685,7 +686,7 @@
           analyzing:'Analyzing file…', issuesTitle:'Lines to review', fieldsCount:'{count} fields', noFields:'No top-level fields were found.', fieldName:'Field', occurrence:'Presence', types:'Types', values:'Values', typeMixed:'Mixed types', fieldLimit:'There are many fields. Only the first {count} are summarized.',
           tableView:'Table', recordView:'Record', columns:'Columns', rowsPerPage:'Rows per page', loadingRecords:'Loading lines…', previous:'Previous', next:'Next', previousPage:'Previous page', nextPage:'Next page', pageNumber:'Page number',
           outputFilename:'CSV filename', copyJsonl:'Copy JSONL', copyCsv:'Copy CSV', downloadCsv:'Save CSV',
-          helpTitle:'How to use & notes', close:'Close', helpBasicsTitle:'Basics', helpStep1:'Choose or drop a JSONL / NDJSON file.', helpStep2:'After analysis, review valid lines, lines needing attention, and detected fields.', helpStep3:'Switch between Table and Record views and move through pages. Click an issue to jump to its page.', helpStep4:'Copy the current page as JSONL, or copy/save it as CSV.', helpPrivacyTitle:'Privacy', helpPrivacyBody:'Selected files are analyzed only in your browser. This app does not send them to an external server.', helpNotesTitle:'Notes', helpNoteUtf8:'JSON Lines is parsed as UTF-8.', helpCancel:'Close an analyzing tab to cancel its scan. The remaining files continue to be analyzed.', helpNoteReadOnly:'This is read-only. The source file is not modified.', helpNoteIssues:'Valid lines remain available even when other lines have problems.', helpNoteFields:'Field statistics cover top-level objects. Arrays and primitive values are represented as __value.', helpNoteCsv:'CSV output covers the current page, not the entire file.', helpNoteCopyJsonl:'Copy JSONL includes only valid lines from the current page.', helpNoteGzip:'.jsonl.gz / .ndjson.gz files are not opened directly in the current version.', helpOffline:'The distributable HTML requires no runtime network connection and can be opened directly as a local file.',
+          helpTitle:'How to use & notes', close:'Close', helpBasicsTitle:'Basics', helpStep1:'Choose or drop a JSONL / NDJSON file.', helpStep2:'After analysis, review valid lines, lines needing attention, and detected fields.', helpStep3:'Switch between Table and Record views and move through pages. Click an issue to jump to its page.', helpStep4:'Copy the current page as JSONL, or copy/save it as CSV.', helpPrivacyTitle:'Privacy', helpPrivacyBody:'Selected files are analyzed only in your browser. This app does not send them to an external server.', helpNotesTitle:'Notes', helpNoteUtf8:'JSON Lines is parsed as UTF-8.', helpCancel:'Close an analyzing tab to cancel its scan. The remaining files continue to be analyzed.', helpSuccessor:'Closing the active tab loads the next file’s page. Copy and save are unavailable while loading or after a read failure. Select the tab again to retry a failed page read.', helpNoteReadOnly:'This is read-only. The source file is not modified.', helpNoteIssues:'Valid lines remain available even when other lines have problems.', helpNoteFields:'Field statistics cover top-level objects. Arrays and primitive values are represented as __value.', helpNoteCsv:'CSV output covers the current page, not the entire file.', helpNoteCopyJsonl:'Copy JSONL includes only valid lines from the current page.', helpNoteGzip:'.jsonl.gz / .ndjson.gz files are not opened directly in the current version.', helpOffline:'The distributable HTML requires no runtime network connection and can be opened directly as a local file.',
           cellDetails:'Cell contents', lineLabel:'Line', fieldLabel:'Field', typeLabel:'Type', copyValue:'Copy value', columnsTitle:'Visible columns', showAllColumns:'Show all', done:'Done',
           summarySize:'File size', summaryLines:'Lines', summaryValid:'Valid', summaryIssues:'Review', detailFields:'Fields', detailFormat:'Format', detailEncoding:'Encoding', detailLineEnding:'Line endings', detailBom:'UTF-8 BOM', detailObjects:'Object lines', detailOtherValues:'Other JSON values', yes:'Yes', no:'No', utf8:'UTF-8', formatJsonl:'JSONL / NDJSON', lineEndingLf:'LF', lineEndingCrlf:'CRLF', lineEndingMixed:'Mixed', lineEndingNone:'None',
           statusReady:'Analysis complete.', statusIssues:'Review {count} lines. Valid lines remain available.', statusAnalyzing:'Analyzing {name}…', unsupportedFile:'Choose a JSONL / NDJSON file.', gzipUnsupported:'gzip-compressed files are not opened directly in the current version.', analysisFailed:'Could not analyze this file.', readFailed:'Could not load data.', emptyFile:'The file contains no lines.',
@@ -792,7 +793,7 @@
           if(cancelled||!state.files.includes(fileState))return;
           fileState.analysis=analysis;fileState.analyzing=false;fileState.progress=100;prepareFields(fileState);fileState.outputFilename=`${basename(fileState.file.name)}-preview`;fileState.page=1;
           await readPage(fileState);
-          if(getActiveFile()?.id===fileState.id){if(!analysis.totalLines)setStatus(t('emptyFile'),'warning');else setStatus(analysis.invalid?t('statusIssues',{count:formatNumber(analysis.invalid)}):t('statusReady'),analysis.invalid?'warning':'info');}
+          if(getActiveFile()?.id===fileState.id)renderActive();
         }finally{if(worker){worker.onmessage=null;worker.onerror=null;worker.terminate();}URL.revokeObjectURL(workerUrl);fileState.worker=null;fileState.cancelAnalysis=null;fileState.analyzing=false;}
       }
 
@@ -807,7 +808,7 @@
         for(const file of incoming){if(/\.(jsonl|ndjson)\.gz$/i.test(file.name)){gzipCount++;continue;}if(!supportedName(file.name)){unsupportedCount++;continue;}supported.push(file);}
         if(gzipCount)toast(t('gzipUnsupported'));if(unsupportedCount)toast(t('unsupportedFile'));if(!supported.length)return;
         const added=supported.map(file=>({id:createId(),file,analysis:null,fields:[],rows:[],page:1,pageSize:100,viewMode:'table',hiddenFields:new Set(),sort:null,analyzing:false,progress:0,error:'',dataError:'',outputFilename:`${basename(file.name)}-preview`,worker:null,cancelAnalysis:null}));
-        state.files.push(...added);state.activeId=added[0].id;setLoadedUi(true);renderFileManager();renderActive();
+        state.files.push(...added);activateFile(added[0].id);
         for(const fileState of added){
           if(!state.files.includes(fileState))continue;
           try{await analyzeFile(fileState);}catch(error){fileState.analyzing=false;fileState.error=error?.message||t('analysisFailed');}
@@ -816,11 +817,25 @@
         if(getActiveFile()?.id===added[0].id)renderActive();
       }
 
-      function removeFile(id){const index=state.files.findIndex(item=>item.id===id);if(index<0)return;const [removed]=state.files.splice(index,1);removed.cancelAnalysis?.();if(state.activeId===id)state.activeId=state.files[Math.min(index,state.files.length-1)]?.id||null;state.generation+=1;setLoadedUi(Boolean(state.files.length));renderFileManager();renderActive();}
+      function removeFile(id){
+        const index=state.files.findIndex(item=>item.id===id);if(index<0)return;
+        const [removed]=state.files.splice(index,1);removed.cancelAnalysis?.();removed.loading=false;
+        if(state.activeId===id){
+          const next=state.files[Math.min(index,state.files.length-1)];
+          // Closing and selecting a tab share the same page-loading transition.
+          if(next)return activateFile(next.id);
+          state.activeId=null;state.generation+=1;
+        }
+        renderFileManager();renderActive();
+      }
 
       async function activateFile(id){
         const fileState=state.files.find(item=>item.id===id);if(!fileState)return;
-        state.activeId=id;state.generation+=1;renderFileManager();renderActive();
+        if(state.activeId!==id){
+          const previous=getActiveFile();if(previous)previous.loading=false;
+          state.activeId=id;state.generation+=1;
+        }
+        renderFileManager();renderActive();
         if(fileState.analysis&&!fileState.analyzing&&!fileState.error&&!fileState.rows.length&&!fileState.loading)await readPage(fileState);
       }
 
@@ -866,7 +881,23 @@
         while(offset<fileState.file.size&&!done){const end=Math.min(fileState.file.size,offset+PAGE_READ_CHUNK);const chunk=new Uint8Array(await fileState.file.slice(offset,end).arrayBuffer());consume(chunk,end>=fileState.file.size);offset=end;}
         return result;
       }
-      async function readPage(fileState){if(!fileState.analysis||fileState.analyzing||fileState.error)return;const generation=++state.generation;fileState.loading=true;fileState.dataError='';if(getActiveFile()?.id===fileState.id)renderDataLoading(true);try{const total=fileState.analysis.totalLines;const pages=Math.max(1,Math.ceil(total/fileState.pageSize));fileState.page=Math.min(Math.max(1,fileState.page),pages);const start=(fileState.page-1)*fileState.pageSize+1;const count=Math.max(0,Math.min(fileState.pageSize,total-start+1));const rows=count?await readLineRange(fileState,start,count):[];if(generation!==state.generation||getActiveFile()?.id!==fileState.id)return;fileState.rows=rows;}catch(error){fileState.rows=[];fileState.dataError=error?.message||String(error);}finally{fileState.loading=false;if(getActiveFile()?.id===fileState.id){renderDataLoading(false);renderActive();}}}
+      async function readPage(fileState){
+        if(getActiveFile()!==fileState||!fileState.analysis||fileState.analyzing||fileState.error)return;
+        const generation=++state.generation;
+        const isCurrent=()=>generation===state.generation&&getActiveFile()===fileState;
+        fileState.loading=true;fileState.rows=[];fileState.dataError='';renderActive();
+        try{
+          const total=fileState.analysis.totalLines;const pages=Math.max(1,Math.ceil(total/fileState.pageSize));fileState.page=Math.min(Math.max(1,fileState.page),pages);
+          const start=(fileState.page-1)*fileState.pageSize+1;const count=Math.max(0,Math.min(fileState.pageSize,total-start+1));
+          const rows=count?await readLineRange(fileState,start,count):[];
+          if(isCurrent())fileState.rows=rows;
+        }catch(error){
+          if(isCurrent())fileState.dataError=error?.message||String(error);
+        }finally{
+          // An obsolete success, error or finally must not alter the newer page.
+          if(isCurrent()){fileState.loading=false;renderActive();}
+        }
+      }
       function renderDataLoading(show){$('#dataLoading').classList.toggle('show',Boolean(show));$('#dataTableWrap').classList.toggle('data-view-hidden',Boolean(show)||getActiveFile()?.viewMode==='record');$('#recordList').classList.toggle('data-view-hidden',Boolean(show)||getActiveFile()?.viewMode!=='record');}
 
       function visibleFields(fileState){return fileState.fields.filter(field=>!fileState.hiddenFields.has(field.index));}
@@ -883,7 +914,16 @@
       }
       function renderRecords(fileState){const list=$('#recordList');list.replaceChildren();if(!fileState.rows.length){const empty=document.createElement('div');empty.className='table-empty';empty.textContent=t('noRows');list.append(empty);return;}fileState.rows.forEach(row=>{const details=document.createElement('details');details.className='record-card';const summary=document.createElement('summary');const line=document.createElement('span');line.className='record-line';line.textContent=t('lineJump',{line:formatNumber(row.lineNumber)});const badge=document.createElement('span');badge.className=row.valid?'ok-badge':'issue-badge';badge.textContent=t(row.valid?'ok':'issue');const brief=document.createElement('span');brief.className='record-summary-text';brief.textContent=row.valid?summarizeValue(row.value):t('recordSummaryIssue',{message:row.error});summary.append(line,badge,brief);const pre=document.createElement('pre');pre.className='record-pre';pre.textContent=row.valid?prettyValue(row.value):`${row.error}\n\n${row.raw}`;details.append(summary,pre);list.append(details);});}
       function renderPagination(fileState){const total=fileState.analysis?.totalLines||0;const pages=Math.max(1,Math.ceil(total/fileState.pageSize));const start=total?(fileState.page-1)*fileState.pageSize+1:0;const end=Math.min(total,fileState.page*fileState.pageSize);$('#pageRangeLabel').textContent=t('recordsRange',{start:formatNumber(start),end:formatNumber(end),total:formatNumber(total)});$('#pageInfo').textContent=t('pageOf',{page:formatNumber(fileState.page),pages:formatNumber(pages)});$('#pageJump').value=String(fileState.page);$('#pageJump').max=String(pages);$('#prevButton').disabled=fileState.page<=1;$('#nextButton').disabled=fileState.page>=pages;}
-      function renderData(fileState){if(fileState.analyzing){$('#dataTableWrap').replaceChildren();$('#recordList').replaceChildren();renderDataLoading(true);return;}if(!fileState.analysis){$('#dataTableWrap').replaceChildren();$('#recordList').replaceChildren();return;}renderPagination(fileState);$('#pageSizeSelect').value=String(fileState.pageSize);$('#outputFilename').value=fileState.outputFilename;$('#tableModeButton').classList.toggle('active',fileState.viewMode==='table');$('#recordModeButton').classList.toggle('active',fileState.viewMode==='record');$('#columnsButton').hidden=fileState.viewMode!=='table';$('#dataTableWrap').classList.toggle('data-view-hidden',fileState.viewMode!=='table'||fileState.loading);$('#recordList').classList.toggle('data-view-hidden',fileState.viewMode!=='record'||fileState.loading);if(fileState.viewMode==='table')renderTable(fileState);else renderRecords(fileState);}
+      function renderData(fileState){
+        renderDataLoading(fileState.analyzing||fileState.loading);
+        renderPagination(fileState);$('#pageSizeSelect').value=String(fileState.pageSize);$('#outputFilename').value=fileState.outputFilename;
+        const unavailable=!fileState.analysis||fileState.analyzing||Boolean(fileState.error)||fileState.loading;
+        $('#prevButton').disabled=unavailable||$('#prevButton').disabled;$('#nextButton').disabled=unavailable||$('#nextButton').disabled;
+        $('#pageJump').disabled=unavailable;$('#pageSizeSelect').disabled=unavailable;
+        if(fileState.analyzing||!fileState.analysis){$('#dataTableWrap').replaceChildren();$('#recordList').replaceChildren();return;}
+        $('#tableModeButton').classList.toggle('active',fileState.viewMode==='table');$('#recordModeButton').classList.toggle('active',fileState.viewMode==='record');$('#columnsButton').hidden=fileState.viewMode!=='table';
+        if(fileState.viewMode==='table')renderTable(fileState);else renderRecords(fileState);
+      }
 
       function openCell(row,fieldName,value){$('#cellLine').textContent=formatNumber(row.lineNumber);$('#cellField').textContent=fieldName;$('#cellType').textContent=typeOfValue(value);const text=prettyValue(value);$('#cellValue').textContent=text||t('blank');state.activeCellText=text;$('#cellDialog').showModal();}
       function renderColumnsDialog(fileState){const list=$('#columnsList');list.replaceChildren();fileState.fields.forEach(field=>{const label=document.createElement('label');label.className='column-option';const input=document.createElement('input');input.type='checkbox';input.checked=!fileState.hiddenFields.has(field.index);input.dataset.index=String(field.index);const span=document.createElement('span');span.textContent=field.name;label.append(input,span);list.append(label);});}
@@ -894,11 +934,27 @@
       function buildCurrentJsonl(fileState){return fileState.rows.filter(row=>row.valid).map(row=>row.raw).join('\n');}
       function normalizedFilenameBase(){const active=getActiveFile();const fallback=active?`${basename(active.file.name)}-preview`:APP_CONFIG.slug;const input=$('#outputFilename');const cleaned=input.value.trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'-').replace(/\.+$/g,'').trim();let base=cleaned.replace(/\.csv$/i,'')||fallback;if(/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(base))base=`${base}-file`;base=base.slice(0,120);input.value=base;if(active)active.outputFilename=base;return base;}
       async function copyText(text){try{await navigator.clipboard.writeText(text);return true;}catch{const area=document.createElement('textarea');area.value=text;area.style.position='fixed';area.style.left='-9999px';document.body.append(area);area.select();const ok=document.execCommand('copy');area.remove();return ok;}}
-      async function copyJsonl(){const fs=getActiveFile();if(!fs)return;const text=buildCurrentJsonl(fs);if(!text){toast(t('noValidJsonToCopy'));return;}toast(t(await copyText(text)?'jsonlCopied':'copyFailed'));}
-      async function copyCsv(){const fs=getActiveFile();if(!fs)return;try{toast(t(await copyText(buildCurrentCsv(fs))?'csvCopied':'copyFailed'));}catch{toast(t('csvFailed'));}}
-      function downloadCsv(){const fs=getActiveFile();if(!fs)return;try{const csv=buildCurrentCsv(fs);const url=URL.createObjectURL(new Blob(['\uFEFF',csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=`${normalizedFilenameBase()}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast(t('csvDownloaded'));}catch{toast(t('csvFailed'));}}
+      function canExportPage(fileState){return Boolean(fileState?.analysis&&!fileState.analyzing&&!fileState.loading&&!fileState.error&&!fileState.dataError&&fileState.rows.length);}
+      async function copyJsonl(){const fs=getActiveFile();if(!canExportPage(fs))return;const text=buildCurrentJsonl(fs);if(!text){toast(t('noValidJsonToCopy'));return;}toast(t(await copyText(text)?'jsonlCopied':'copyFailed'));}
+      async function copyCsv(){const fs=getActiveFile();if(!canExportPage(fs))return;try{toast(t(await copyText(buildCurrentCsv(fs))?'csvCopied':'copyFailed'));}catch{toast(t('csvFailed'));}}
+      function downloadCsv(){const fs=getActiveFile();if(!canExportPage(fs))return;try{const csv=buildCurrentCsv(fs);const url=URL.createObjectURL(new Blob(['\uFEFF',csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=`${normalizedFilenameBase()}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast(t('csvDownloaded'));}catch{toast(t('csvFailed'));}}
 
-      function renderActive(){const fileState=getActiveFile();setLoadedUi(Boolean(fileState));if(!fileState){setStatus('');return;}if(fileState.analyzing)setStatus(t('statusAnalyzing',{name:fileState.file.name}));else if(fileState.error)setStatus(`${t('analysisFailed')} ${fileState.error}`,'error');else if(fileState.dataError)setStatus(`${t('readFailed')} ${fileState.dataError}`,'error');else if(fileState.analysis&&!fileState.analysis.totalLines)setStatus(t('emptyFile'),'warning');else if(fileState.analysis?.invalid)setStatus(t('statusIssues',{count:formatNumber(fileState.analysis.invalid)}),'warning');else if(fileState.analysis)setStatus(t('statusReady'));renderOverview(fileState);renderFields(fileState);renderData(fileState);renderFileManager();}
+      function renderActive(){
+        const fileState=getActiveFile();setLoadedUi(Boolean(fileState));
+        const exportReady=canExportPage(fileState);
+        $('#copyJsonlButton').disabled=!exportReady||!fileState.rows.some(row=>row.valid);
+        $('#copyCsvButton').disabled=!exportReady;$('#downloadCsvButton').disabled=!exportReady;
+        if(!fileState){setStatus('');renderDataLoading(false);$('#dataTableWrap').replaceChildren();$('#recordList').replaceChildren();return;}
+        if(fileState.analyzing)setStatus(t('statusAnalyzing',{name:fileState.file.name}));
+        else if(fileState.error)setStatus(`${t('analysisFailed')} ${fileState.error}`,'error');
+        else if(fileState.dataError)setStatus(`${t('readFailed')} ${fileState.dataError}`,'error');
+        else if(fileState.loading)setStatus(t('loadingRecords'));
+        else if(fileState.analysis&&!fileState.analysis.totalLines)setStatus(t('emptyFile'),'warning');
+        else if(fileState.analysis?.invalid)setStatus(t('statusIssues',{count:formatNumber(fileState.analysis.invalid)}),'warning');
+        else if(fileState.analysis)setStatus(t('statusReady'));
+        else setStatus(t('statusAnalyzing',{name:fileState.file.name}));
+        renderOverview(fileState);renderFields(fileState);renderData(fileState);renderFileManager();
+      }
       function applyLanguage(){document.documentElement.lang=state.language;$$('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});$$('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);});$$('[data-i18n-aria-label]').forEach(el=>{el.setAttribute('aria-label',t(el.dataset.i18nAriaLabel));});$('#languageButton').textContent=state.language==='ja'?'EN':'日本語';$('#languageButton').setAttribute('aria-label',state.language==='ja'?'英語に切り替え':'Switch to Japanese');document.title=state.language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name;$('#brandName').textContent=state.language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name;$('#footerText').textContent=t('footer',{version:APP_CONFIG.version});renderActive();}
       function setMobilePage(page){state.mobilePage=page;$$('.app-page').forEach(el=>el.classList.toggle('mobile-active',el.dataset.mobilePage===page));$$('.mobile-nav-button').forEach(btn=>btn.classList.toggle('active',btn.dataset.mobileTarget===page));window.scrollTo({top:0,behavior:'smooth'});}
       function closeDialogOnBackdrop(dialog){dialog.addEventListener('click',event=>{const rect=dialog.getBoundingClientRect();const outside=event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom;if(outside)dialog.close();});}

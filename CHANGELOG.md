@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Load the newly active file page when closing a tab, including files analyzed in the background. Preserve visited-file settings.
+- Keep copy/save unavailable while a page is pending or failed; ignore stale page-read callbacks and preserve active reads when an inactive tab closes. Add source-level lifecycle and release-parity regression checks.
+
 - Fix closing an analyzing file leaving the rest of a multi-file batch waiting indefinitely. Release cancelled worker URLs, skip closed queued files, and ignore late cancelled-worker callbacks.
 
 ## v1.0.0 - 2026-09-04

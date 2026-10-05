@@ -26,6 +26,8 @@ GitHub Pages delivers the initial HTML. After it loads, selected files are read 
 - **Export the current page** — Copy valid current-page records as JSONL, or copy/save the current page as CSV.
 - **Work with multiple files** — Open several files with analysis status, issues, and data isolated per file tab. Close an analyzing tab to cancel its scan while remaining files continue.
 
+Closing the active tab loads the next file’s page automatically. Previously viewed files keep their page and view settings. Copy/save become available only after the page loads; select the tab again to retry a page-read failure.
+
 ## Quick start
 
 ### Use the web demo
@@ -99,6 +101,8 @@ powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\scripts\check-
 ```
 
 The build/verification flow checks the dependency lock, generates the standalone artifacts, verifies unresolved placeholders and runtime-network restrictions, and builds/verifies the self-extracting variant.
+
+The repository check additionally requires Node.js 22 or newer. It runs dependency-free file/page lifecycle checks against the source, readable HTML, root download, and decompressed self-extract payload, plus release parity checks. These source-level tests do not replace browser, file-picker, layout, or real clipboard testing. The default build refreshes `jsonl-viewer.html`; custom-output builds leave it unchanged.
 
 ## Privacy and runtime network protection
 
