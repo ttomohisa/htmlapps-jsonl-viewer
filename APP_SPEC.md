@@ -15,7 +15,7 @@
 3. Review detected top-level fields, presence rates, and mixed types.
 4. Inspect the current page as a table or record list without holding all parsed records in memory.
 5. Jump from an issue entry to the affected line.
-6. Copy valid records from the current page as JSONL, or copy/save the current page as CSV.
+6. Expand a valid Record to copy that individual JSON line, or copy valid records from the current page as JSONL, or copy/save the current page as CSV.
 
 ## 3. Functional requirements
 
@@ -37,7 +37,11 @@
 - Page sizes: 50 / 100 / 250 / 500 / 1,000.
 - Direct page jump.
 - Table view with current-page sort and column visibility.
-- Record view with collapsible pretty-printed JSON.
+- Record view with collapsible pretty-printed JSON. Top-level strings retain JSON quotes and escaping; Cell Inspector keeps its existing string-value display/copy.
+- An expanded valid Record includes a localized Copy JSON button outside its disclosure summary, with the source line in its accessible label.
+- Individual-record copy uses the loaded row’s original raw text without reserialization or an added newline, preserving whitespace, numeric spelling/precision, escape spelling, and duplicate keys. Existing parsing excludes the initial BOM and line terminator.
+- Invalid JSON, blank, and invalid-UTF-8 records have no JSON-copy action.
+- Record copy requires the same active file, generation, ready page, page size, and exact row identity. Detached stale controls do nothing. Obsolete async completion feedback is suppressed; an already-started clipboard write cannot be cancelled. A failed obsolete write must not start a fallback write. A textarea fallback that normalizes raw text (such as literal CR whitespace) must fail before copying rather than alter the record.
 - Cell inspector for full strings, objects, arrays, numbers, booleans, and null.
 - Top-level field statistics: presence count/rate and observed JSON types.
 - Mixed types are explicitly marked.
@@ -97,7 +101,8 @@ Current stable Chromium, Firefox, and Safari where File API, Blob Worker, TextDe
 - UTF-8 BOM + CRLF is accepted.
 - Mixed types appear in Fields.
 - Primitive/array top-level values appear under `__value`.
-- Table / Record switching works.
+- Table / Record switching works. Record string JSON is correctly quoted/escaped.
+- Individual valid-record copy preserves original line text; stale controls and stale clipboard feedback are rejected. Clipboard failures do not show success.
 - 50 / 100 / 250 / 500 / 1,000 row paging works.
 - Current-page CSV and valid-line JSONL copy work.
 - Multiple files, Japanese/English, help, dialogs, mobile tabs, and CSP remain functional.

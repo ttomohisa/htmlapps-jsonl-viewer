@@ -249,6 +249,8 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
 }
 & node (Join-Path $Root "scripts/test-file-lifecycle.cjs") (Join-Path $Root "src/index.template.html") (Join-Path $Root "dist/index.html") (Join-Path $Root "jsonl-viewer.html") (Join-Path $Root "dist/index.self-extract.html")
 if ($LASTEXITCODE -ne 0) { throw "Application file lifecycle regression checks failed." }
+& node (Join-Path $Root "scripts/test-record-copy.cjs") (Join-Path $Root "src/index.template.html") (Join-Path $Root "dist/index.html") (Join-Path $Root "jsonl-viewer.html") (Join-Path $Root "dist/index.self-extract.html")
+if ($LASTEXITCODE -ne 0) { throw "Application record-copy regression checks failed." }
 & node (Join-Path $Root "scripts/test-release-parity.cjs")
 if ($LASTEXITCODE -ne 0) { throw "Release artifact parity checks failed." }
-Write-Host "[OK] Application lifecycle and release parity checks passed." -ForegroundColor Green
+Write-Host "[OK] Application lifecycle, record-copy and release parity checks passed." -ForegroundColor Green

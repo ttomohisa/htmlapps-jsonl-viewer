@@ -23,6 +23,7 @@ GitHub Pages delivers the initial HTML. After it loads, selected files are read 
 - **Review field presence and type consistency** — Summarize top-level fields, presence rates, observed JSON types, and mixed types such as number / string / null.
 - **Avoid holding every parsed record** — Store sparse checkpoints during the initial scan and re-read only the requested page.
 - **Switch between Table and Record views** — Inspect current-page data as columns or pretty-printed JSON, with Cell Inspector for full values.
+- **Copy one JSON record** — Expand a valid Record and choose **Copy JSON** to copy that line’s original JSON text. Top-level strings are shown with their JSON quotes and escapes.
 - **Export the current page** — Copy valid current-page records as JSONL, or copy/save the current page as CSV.
 - **Work with multiple files** — Open several files with analysis status, issues, and data isolated per file tab. Close an analyzing tab to cancel its scan while remaining files continue.
 
@@ -57,7 +58,9 @@ Python, Node.js, and a local web server are not required. The builder uses Windo
 3. Review detected fields, presence rates, and mixed types.
 4. Open an issue entry to jump to the affected page when a malformed or blank line is found.
 5. Switch between Table and Record views and inspect full cell values when needed.
-6. Copy valid records from the current page as JSONL, or copy/save the current page as CSV.
+6. Expand a valid Record and choose **Copy JSON** for that record, or copy valid current-page records as JSONL / copy or save the page as CSV.
+
+Individual-record copy preserves whitespace, large-number spelling, escapes, and duplicate keys without adding a newline. It excludes the initial UTF-8 BOM and line terminator, as the parser does. Review-needed rows have no JSON-copy button. If the browser’s clipboard fallback would change the original text (for example, a literal carriage return inside a record), the action reports failure instead. Cell Inspector still displays and copies the string value without JSON quotes.
 
 ## Publish with GitHub Pages
 
