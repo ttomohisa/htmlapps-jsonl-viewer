@@ -125,7 +125,7 @@ GitHub Pages版では最初のHTML配信だけ通信が発生します。その�
 
 ## 依存関係
 
-JSONL Viewer v1.0.0 は、実行時のサードパーティJavaScriptライブラリを同梱していません。
+JSONL Viewer v1.0.1 は、実行時のサードパーティJavaScriptライブラリを同梱していません。
 
 形式・プロジェクトに関する補足は [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) を確認してください。
 

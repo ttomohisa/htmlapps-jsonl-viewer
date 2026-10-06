@@ -465,12 +465,12 @@
 </svg>
         </div>
         <div class="brand-copy">
-          <p class="brand-name"><span id="brandName">JSONL Viewer</span><span class="version-badge" id="versionBadge">v1.0.0</span></p>
+          <p class="brand-name"><span id="brandName">JSONL Viewer</span><span class="version-badge" id="versionBadge">v1.0.1</span></p>
           <p class="brand-meta" data-i18n="brandMeta">JSONL / NDJSONをブラウザー内で確認</p>
         </div>
       </div>
       <div class="header-actions">
-        <button class="language-button" id="languageButton" type="button" aria-label="Switch language">EN</button>
+        <button class="language-button" id="languageButton" type="button" aria-label="英語に切り替え" title="英語に切り替え">EN</button>
         <button class="icon-button" id="helpButton" type="button" data-i18n-title="helpTitle" data-i18n-aria-label="helpTitle" title="使い方と注意事項" aria-label="使い方と注意事項">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.35 2.35 0 1 1 3.72 1.9c-.92.67-1.52 1.12-1.52 2.1"/><path d="M12 17h.01"/></svg>
         </button>
@@ -1000,7 +1000,7 @@
         else setStatus(t('statusAnalyzing',{name:fileState.file.name}));
         renderOverview(fileState);renderFields(fileState);renderData(fileState);renderFileManager();
       }
-      function applyLanguage(){document.documentElement.lang=state.language;$$('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});$$('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);});$$('[data-i18n-aria-label]').forEach(el=>{el.setAttribute('aria-label',t(el.dataset.i18nAriaLabel));});$('#languageButton').textContent=state.language==='ja'?'EN':'日本語';$('#languageButton').setAttribute('aria-label',state.language==='ja'?'英語に切り替え':'Switch to Japanese');document.title=state.language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name;$('#brandName').textContent=state.language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name;$('#footerText').textContent=t('footer',{version:APP_CONFIG.version});renderActive();}
+      function applyLanguage(){document.documentElement.lang=state.language;$$('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});$$('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);});$$('[data-i18n-aria-label]').forEach(el=>{el.setAttribute('aria-label',t(el.dataset.i18nAriaLabel));});$('#languageButton').textContent=state.language==='ja'?'EN':'JA';const languageTarget=state.language==='ja'?'英語に切り替え':'Switch to Japanese';$('#languageButton').setAttribute('aria-label',languageTarget);$('#languageButton').title=languageTarget;document.title=state.language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name;$('#brandName').textContent=state.language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name;$('#footerText').textContent=t('footer',{version:APP_CONFIG.version});renderActive();}
       function setMobilePage(page){state.mobilePage=page;$$('.app-page').forEach(el=>el.classList.toggle('mobile-active',el.dataset.mobilePage===page));$$('.mobile-nav-button').forEach(btn=>btn.classList.toggle('active',btn.dataset.mobileTarget===page));window.scrollTo({top:0,behavior:'smooth'});}
       function closeDialogOnBackdrop(dialog){dialog.addEventListener('click',event=>{const rect=dialog.getBoundingClientRect();const outside=event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom;if(outside)dialog.close();});}
 

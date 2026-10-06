@@ -254,3 +254,9 @@ if ($LASTEXITCODE -ne 0) { throw "Application record-copy regression checks fail
 & node (Join-Path $Root "scripts/test-release-parity.cjs")
 if ($LASTEXITCODE -ne 0) { throw "Release artifact parity checks failed." }
 Write-Host "[OK] Application lifecycle, record-copy and release parity checks passed." -ForegroundColor Green
+
+# Header translation and version checks across canonical release variants.
+if (-not (Get-Command node -ErrorAction SilentlyContinue)) { throw "Node.js 22 or newer is required for header checks." }
+& node (Join-Path $Root "scripts/test-header-consistency.cjs") (Join-Path $Root "src/index.template.html") (Join-Path $Root "dist/index.html") (Join-Path $Root "jsonl-viewer.html") (Join-Path $Root "dist/index.self-extract.html")
+if ($LASTEXITCODE -ne 0) { throw "Header consistency regression checks failed." }
+Write-Host "[OK] Header consistency checks passed." -ForegroundColor Green

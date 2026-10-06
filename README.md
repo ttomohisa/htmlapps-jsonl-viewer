@@ -125,7 +125,7 @@ The full-file scan runs in a Blob Worker created from code embedded in the stand
 
 ## Dependencies
 
-JSONL Viewer v1.0.0 does not bundle third-party runtime JavaScript libraries.
+JSONL Viewer v1.0.1 does not bundle third-party runtime JavaScript libraries.
 
 See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for format/project notices.
 

@@ -3,7 +3,7 @@
 ## 1. Product identity
 
 - **Name:** JSONL Viewer
-- **Version:** v1.0.0
+- **Version:** v1.0.1
 - **Purpose:** Open local JSONL / NDJSON files, inspect records, detect invalid lines, and review top-level field presence and type consistency without uploading the file.
 - **Primary users:** Developers, data engineers, AI/LLM practitioners, and anyone receiving line-delimited JSON logs or datasets.
 - **Release artifact:** `dist/index.html`
@@ -52,6 +52,8 @@
 - Current-page CSV includes `__line`, `__status`, `__raw`, and selected fields.
 - User-editable CSV output filename.
 - Japanese and English UI.
+- The header uses EN in Japanese and JA in English, with localized target-language names and Help labels. The version follows vMAJOR.MINOR.PATCH.
+- The local-processing badge reads 完全ローカル処理 / Fully local processing. Existing responsive visibility is unchanged.
 
 ## 4. Privacy and network
 
@@ -61,7 +63,7 @@
 - CSP keeps `connect-src 'none'`.
 - Blob Worker is allowed because analysis runs locally from code embedded in the same standalone HTML.
 
-## 5. Non-goals for v1.0.0
+## 5. Non-goals for v1.0.1
 
 - Editing or repairing JSONL in place.
 - Saving a repaired full file.
