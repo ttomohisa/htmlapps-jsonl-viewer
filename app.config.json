@@ -3,7 +3,7 @@
   "name": "JSONL Viewer",
   "nameJa": "JSONL Viewer",
   "slug": "jsonl-viewer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Open JSONL and NDJSON files locally, inspect records, find invalid lines, and review field types.",
   "descriptionJa": "JSONL / NDJSONファイルをブラウザー内で開き、レコード・不正行・フィールド構成・型の混在を確認します。",
   "defaultLanguage": "auto",

@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.1 - 2026-10-06
+
+- Standardize local-processing badge and EN / JA header controls with localized target-language names and Help titles.
+- Synchronize canonical metadata and standalone header versions at v1.0.1.
+- Add header regressions for source, readable, root download, and decompressed self-extract variants; preserve data behavior and responsive visibility.
+
 ## Unreleased
 
 - Add per-record Copy JSON in Record view, preserving the original valid line text and rejecting stale file/page actions and feedback.
