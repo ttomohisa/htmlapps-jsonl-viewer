@@ -116,3 +116,10 @@ Current stable Chromium, Firefox, and Safari where File API, Blob Worker, TextDe
 - Ready: show the current rows and enable applicable exports. An empty file remains non-exportable.
 - Read error: show the file-scoped error without old rows; reselecting the tab retries.
 - Closing / switching: invalidate obsolete reads, preserve completed pages, and activate the successor when present. Closing the last tab returns to the empty state.
+
+## Responsive dialog and keyboard regression (v1.0.2)
+
+- Help, Columns, and Cell Inspector use the available dynamic viewport height with a fixed header and shrinkable scrolling body. Keep the existing narrow bottom-sheet and safe-area behavior.
+- Opening a modal locks background scrolling; dismissal retains the native dialog focus-return behavior.
+- Keyboard sorting restores focus to the same field button after table rendering. Sorting and source-order CSV export semantics stay unchanged.
+- Preserve the shared shield/check icon before the localized fully-local-processing label.

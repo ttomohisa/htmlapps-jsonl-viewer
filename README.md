@@ -18,6 +18,8 @@ GitHub Pages delivers the initial HTML. After it loads, selected files are read 
 
 ## Features
 
+- **Short-window dialogs and keyboard sorting** — Help, Columns, and Cell Inspector keep their close control visible and scroll internally without moving the background. Sorting retains focus on the same header button.
+
 - **Scan large line-delimited files locally** — Analyze `.jsonl`, `.ndjson`, `.jsonl.txt`, and `.ndjson.txt` line by line in a local Blob Worker.
 - **Find problematic lines without losing valid data** — Count malformed JSON and blank lines as review-needed while keeping valid records available.
 - **Review field presence and type consistency** — Summarize top-level fields, presence rates, observed JSON types, and mixed types such as number / string / null.

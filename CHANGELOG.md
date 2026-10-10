@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.2 - 2026-10-10
+
+- Bound Help, Columns, and Cell Inspector to short viewports and keep scrolling inside the dialog body.
+- Prevent modal backdrop scrolling from moving the page.
+- Retain keyboard sort-button focus after rerendering without changing sorting or source-order CSV semantics.
+- Add dialog, shield-badge, and keyboard-focus regression coverage; preserve the existing shield/check badge.
+
 ## v1.0.1 - 2026-10-06
 
 - Standardize local-processing badge and EN / JA header controls with localized target-language names and Help titles.
