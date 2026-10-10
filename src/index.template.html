@@ -301,11 +301,13 @@
     .app-toast.show { opacity: 1; transform: translate(-50%,0); pointer-events: auto; }
     .app-toast-message { min-width: 0; flex: 1; font-size: 12px; }
     .app-toast-action { border: 0; border-radius: 8px; background: transparent; color: #b9eadb; font-weight: 780; cursor: pointer; padding: 6px 7px; }
-    dialog { width: min(620px,calc(100% - 28px)); max-width: 100%; padding: 0; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--text); box-shadow: var(--shadow-md); }
+    html:has(dialog[open]) { overflow: hidden; }
+    dialog { width: min(620px,calc(100% - 28px)); max-width: 100%; max-height: min(760px,calc(100dvh - 28px)); overflow: hidden; padding: 0; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); color: var(--text); box-shadow: var(--shadow-md); }
     dialog::backdrop { background: rgba(15,17,14,.52); backdrop-filter: blur(4px); }
-    .dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 17px; border-bottom: 1px solid var(--line); }
+    dialog[open] { display: flex; flex-direction: column; }
+    .dialog-header { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 17px; border-bottom: 1px solid var(--line); }
     .dialog-header h2 { margin: 0; font-size: 16px; letter-spacing: -.015em; }
-    .dialog-body { padding: 17px 18px 24px; overflow: auto; max-height: calc(100dvh - 90px); }
+    .dialog-body { flex: 1 1 auto; min-height: 0; padding: 17px 18px 24px; overflow: auto; max-height: none; overscroll-behavior: contain; }
     .dialog-body h3 { margin: 22px 0 8px; padding-top: 17px; border-top: 1px solid var(--line); font-size: 13px; }
     .dialog-body h3:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
     .dialog-body p,.dialog-body li { color: var(--muted); font-size: 12px; line-height: 1.75; }
@@ -362,7 +364,7 @@
       .export-actions .button { flex: 1 1 0; }
       .pagination .button { min-width: 42px; padding-inline: 9px; }
       .columns-list { grid-template-columns: 1fr; }
-      dialog { width: 100%; max-width: none; margin: auto 0 0; border-width: 1px 0 0; border-radius: 22px 22px 0 0; }
+      dialog { width: 100%; max-width: none; max-height: calc(100dvh - 10px - env(safe-area-inset-top)); margin: auto 0 0; border-width: 1px 0 0; border-radius: 22px 22px 0 0; }
       .dialog-body { padding-bottom: calc(22px + env(safe-area-inset-bottom)); }
       .app-page { display: none; }
       .app-page.mobile-active { display: block; }
@@ -465,7 +467,7 @@
 </svg>
         </div>
         <div class="brand-copy">
-          <p class="brand-name"><span id="brandName">JSONL Viewer</span><span class="version-badge" id="versionBadge">v1.0.1</span></p>
+          <p class="brand-name"><span id="brandName">JSONL Viewer</span><span class="version-badge" id="versionBadge">v1.0.2</span></p>
           <p class="brand-meta" data-i18n="brandMeta">JSONL / NDJSONをブラウザー内で確認</p>
         </div>
       </div>
@@ -910,7 +912,7 @@
         const wrap=$('#dataTableWrap');wrap.replaceChildren();let rows=sortRows(fileState,[...fileState.rows]);const fields=visibleFields(fileState);const hasIssues=rows.some(row=>!row.valid);
         if(!rows.length){const empty=document.createElement('div');empty.className='table-empty';empty.textContent=t('noRows');wrap.append(empty);return;}
         if(!fields.length&&!hasIssues){const empty=document.createElement('div');empty.className='table-empty';empty.textContent=t('allColumnsHidden');wrap.append(empty);return;}
-        const table=document.createElement('table');const thead=document.createElement('thead');const tr=document.createElement('tr');const lineTh=document.createElement('th');lineTh.textContent=t('line');tr.append(lineTh);const statusTh=document.createElement('th');statusTh.textContent=t('status');tr.append(statusTh);if(hasIssues){const rawTh=document.createElement('th');rawTh.textContent=t('raw');tr.append(rawTh);}fields.forEach(field=>{const th=document.createElement('th');const button=document.createElement('button');button.className='sort-button';button.type='button';button.textContent=field.name;if(fileState.sort?.fieldName===field.name)button.classList.add(fileState.sort.direction);button.addEventListener('click',()=>cycleSort(fileState,field.name));th.append(button);tr.append(th);});thead.append(tr);table.append(thead);const tbody=document.createElement('tbody');
+        const table=document.createElement('table');const thead=document.createElement('thead');const tr=document.createElement('tr');const lineTh=document.createElement('th');lineTh.textContent=t('line');tr.append(lineTh);const statusTh=document.createElement('th');statusTh.textContent=t('status');tr.append(statusTh);if(hasIssues){const rawTh=document.createElement('th');rawTh.textContent=t('raw');tr.append(rawTh);}fields.forEach(field=>{const th=document.createElement('th');const button=document.createElement('button');button.className='sort-button';button.type='button';button.textContent=field.name;if(fileState.sort?.fieldName===field.name)button.classList.add(fileState.sort.direction);button.dataset.sortIndex=String(field.index);button.addEventListener('click',()=>{const restoreFocus=document.activeElement===button;cycleSort(fileState,field.name);if(restoreFocus)wrap.querySelector(`[data-sort-index="${field.index}"]`)?.focus();});th.append(button);tr.append(th);});thead.append(tr);table.append(thead);const tbody=document.createElement('tbody');
         rows.forEach(row=>{const tr=document.createElement('tr');const line=document.createElement('td');line.className='line-cell';line.textContent=formatNumber(row.lineNumber);const status=document.createElement('td');const badge=document.createElement('span');badge.className=row.valid?'ok-badge':'issue-badge';badge.textContent=t(row.valid?'ok':'issue');status.append(badge);tr.append(line,status);if(hasIssues){const rawTd=document.createElement('td');if(!row.valid){const raw=document.createElement('div');raw.className='raw-invalid';raw.textContent=`${row.error}: ${row.raw||''}`;rawTd.append(raw);}tr.append(rawTd);}fields.forEach(field=>{const td=document.createElement('td');if(row.valid){const value=valueForField(row,field);const button=document.createElement('button');button.className='cell-button';button.type='button';button.append(cellNode(value));button.addEventListener('click',()=>openCell(row,field.name,value));td.append(button);}tr.append(td);});tbody.append(tr);});table.append(tbody);wrap.append(table);
       }
       function renderRecords(fileState){
