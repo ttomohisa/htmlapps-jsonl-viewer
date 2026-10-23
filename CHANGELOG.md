@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Move only the lower informational footer version to the end of Help. Preserve the existing 620px phone hiding for that version, the header version, and the footer name and local-processing wording. No parser, data, export, dependency, or version changes.
+
 ## 1.0.2 - 2026-10-10
 
 - Bound Help, Columns, and Cell Inspector to short viewports and keep scrolling inside the dialog body.

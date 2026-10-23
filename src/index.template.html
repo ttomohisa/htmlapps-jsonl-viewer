@@ -449,6 +449,8 @@
       .record-summary-text { flex-basis:100%; }
     }
 
+      .help-version { margin-top:18px; color:var(--muted); font-size:11px; }
+    @media (max-width: 620px) { .help-version { display: none; } }
   </style>
 </head>
 <body>
@@ -624,6 +626,7 @@
       <h3 data-i18n="helpNotesTitle">注意事項</h3>
       <ul><li data-i18n="helpNoteUtf8">JSON LinesはUTF-8を前提として解析します。</li><li data-i18n="helpNoteReadOnly">閲覧専用です。元のファイルを書き換えません。</li><li data-i18n="helpNoteIssues">問題のある行があっても、正常な行は引き続き確認できます。</li><li data-i18n="helpNoteFields">フィールド集計はトップレベルのオブジェクトを対象にします。配列やプリミティブは __value として扱います。</li><li data-i18n="helpNoteCsv">CSV出力はファイル全体ではなく、現在表示しているページが対象です。</li><li data-i18n="helpNoteCopyJsonl">JSONLコピーは現在ページの正常な行だけを対象にします。</li><li data-i18n="helpRecordCopy">Recordで正常な行を開き「JSONをコピー」を選ぶと、その行の元のJSONテキストを改行を追加せずにコピーします。空白・数値表記・重複キーを保ち、先頭BOMと行末の改行は含めません。文字列はRecordでは引用符付き、セル詳細では値そのものを表示します。元のテキストを保てないブラウザーのコピー処理は失敗として扱います。</li><li data-i18n="helpNoteGzip">gzip圧縮された .jsonl.gz / .ndjson.gz は現在のバージョンでは直接読み込みません。</li></ul>
       <p class="dialog-note" data-i18n="helpOffline">配布用HTMLは実行時の外部通信を必要とせず、ローカルファイルとして直接開けます。</p>
+      <p class="help-version" id="helpVersion"></p>
       <!-- APP:HELP:END -->
     </div>
   </dialog>
@@ -679,7 +682,7 @@
           line:'行', status:'状態', ok:'正常', issue:'要確認', raw:'Raw', valueColumn:'value', invalidJson:'JSONとして解析できません', blankLine:'空行', invalidUtf8:'UTF-8として読み取れません', bomNotice:'UTF-8 BOMを検出しました。先頭行から除外して解析しています。',
           recordsRange:'{start}–{end} / {total}行', pageOf:'{page} / {pages}ページ', noRows:'表示する行がありません。', issueListCount:'{shown} / {total}件を表示', lineJump:'行 {line}',
           jsonlCopied:'現在ページのJSONLをコピーしました。', csvCopied:'現在ページのCSVをコピーしました。', csvDownloaded:'CSVを保存しました。', valueCopied:'値をコピーしました。', copyFailed:'コピーできませんでした。', csvFailed:'CSVを作成できませんでした。', noValidJsonToCopy:'現在ページにコピーできる正常なJSON行がありません。',
-          removeFile:'閉じる', fileAnalyzing:'解析中', footer:'JSONL Viewer v{version} · 完全ローカル処理', bytes:'{count}バイト', records:'{count}行', nullLabel:'null', blank:'(空)', primitiveField:'__value', recordSummaryObject:'object · {count}フィールド', recordSummaryArray:'array · {count}要素', recordSummaryValue:'{type}', recordSummaryIssue:'{message}',
+          removeFile:'閉じる', fileAnalyzing:'解析中', footer:'JSONL Viewer · 完全ローカル処理', bytes:'{count}バイト', records:'{count}行', nullLabel:'null', blank:'(空)', primitiveField:'__value', recordSummaryObject:'object · {count}フィールド', recordSummaryArray:'array · {count}要素', recordSummaryValue:'{type}', recordSummaryIssue:'{message}',
           fieldPresence:'{count} / {total}', hiddenFieldCount:'ほか{count}フィールド', allColumnsHidden:'表示する列がありません。「列」から表示する列を選択してください。'
         },
         en: {
@@ -696,7 +699,7 @@
           line:'Line', status:'Status', ok:'Valid', issue:'Review', raw:'Raw', valueColumn:'value', invalidJson:'Could not parse as JSON', blankLine:'Blank line', invalidUtf8:'Could not decode as UTF-8', bomNotice:'A UTF-8 BOM was detected and ignored on the first line.',
           recordsRange:'Lines {start}–{end} / {total}', pageOf:'Page {page} / {pages}', noRows:'No lines to display.', issueListCount:'Showing {shown} / {total}', lineJump:'Line {line}',
           jsonlCopied:'Copied the current page as JSONL.', csvCopied:'Copied the current page as CSV.', csvDownloaded:'Saved CSV.', valueCopied:'Copied value.', copyFailed:'Could not copy.', csvFailed:'Could not create CSV.', noValidJsonToCopy:'There are no valid JSON lines to copy on this page.',
-          removeFile:'Close', fileAnalyzing:'Analyzing', footer:'JSONL Viewer v{version} · Fully local processing', bytes:'{count} bytes', records:'{count} lines', nullLabel:'null', blank:'(blank)', primitiveField:'__value', recordSummaryObject:'object · {count} fields', recordSummaryArray:'array · {count} items', recordSummaryValue:'{type}', recordSummaryIssue:'{message}',
+          removeFile:'Close', fileAnalyzing:'Analyzing', footer:'JSONL Viewer · Fully local processing', bytes:'{count} bytes', records:'{count} lines', nullLabel:'null', blank:'(blank)', primitiveField:'__value', recordSummaryObject:'object · {count} fields', recordSummaryArray:'array · {count} items', recordSummaryValue:'{type}', recordSummaryIssue:'{message}',
           fieldPresence:'{count} / {total}', hiddenFieldCount:'{count} more fields', allColumnsHidden:'No fields are visible. Choose fields from “Columns”.'
         }
       };
@@ -1002,7 +1005,7 @@
         else setStatus(t('statusAnalyzing',{name:fileState.file.name}));
         renderOverview(fileState);renderFields(fileState);renderData(fileState);renderFileManager();
       }
-      function applyLanguage(){document.documentElement.lang=state.language;$$('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});$$('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);});$$('[data-i18n-aria-label]').forEach(el=>{el.setAttribute('aria-label',t(el.dataset.i18nAriaLabel));});$('#languageButton').textContent=state.language==='ja'?'EN':'JA';const languageTarget=state.language==='ja'?'英語に切り替え':'Switch to Japanese';$('#languageButton').setAttribute('aria-label',languageTarget);$('#languageButton').title=languageTarget;document.title=state.language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name;$('#brandName').textContent=state.language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name;$('#footerText').textContent=t('footer',{version:APP_CONFIG.version});renderActive();}
+      function applyLanguage(){document.documentElement.lang=state.language;$$('[data-i18n]').forEach(el=>{el.textContent=t(el.dataset.i18n);});$$('[data-i18n-title]').forEach(el=>{el.title=t(el.dataset.i18nTitle);});$$('[data-i18n-aria-label]').forEach(el=>{el.setAttribute('aria-label',t(el.dataset.i18nAriaLabel));});$('#languageButton').textContent=state.language==='ja'?'EN':'JA';const languageTarget=state.language==='ja'?'英語に切り替え':'Switch to Japanese';$('#languageButton').setAttribute('aria-label',languageTarget);$('#languageButton').title=languageTarget;document.title=state.language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name;$('#brandName').textContent=state.language==='ja'?APP_CONFIG.nameJa:APP_CONFIG.name;$('#footerText').textContent = t('footer'); $('#helpVersion').textContent = 'v' + APP_CONFIG.version;renderActive();}
       function setMobilePage(page){state.mobilePage=page;$$('.app-page').forEach(el=>el.classList.toggle('mobile-active',el.dataset.mobilePage===page));$$('.mobile-nav-button').forEach(btn=>btn.classList.toggle('active',btn.dataset.mobileTarget===page));window.scrollTo({top:0,behavior:'smooth'});}
       function closeDialogOnBackdrop(dialog){dialog.addEventListener('click',event=>{const rect=dialog.getBoundingClientRect();const outside=event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom;if(outside)dialog.close();});}
 
