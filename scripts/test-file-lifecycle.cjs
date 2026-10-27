@@ -20,12 +20,15 @@ class Element {
   replaceChildren(...xs) { this._text = ''; this.children = xs; }
   addEventListener(type, fn) { (this.listeners[type] ||= []).push(fn); }
   async dispatch(type, event = {}) { for (const fn of this.listeners[type] || []) await fn({ target: this, ...event }); }
+  removeAttribute(name){delete this[name]}
+  focus(){if(this.ownerDocument)this.ownerDocument.activeElement=this}
+  getBoundingClientRect(){return{left:0,top:0,right:100,bottom:100}}
   setAttribute(name, value) { this[name] = value; }
   showModal() { this.open = true; }
   close() { this.open = false; }
   click() { return this.dispatch('click', { stopPropagation() {} }); }
-  remove() {}
-  select() {}
+  remove() {this.removed=true;const body=this.ownerDocument?.body;if(body)body.children=body.children.filter(el=>el!==this)}
+  select() {if(this.ownerDocument)this.ownerDocument.activeElement=this}
   scrollIntoView() {}
 }
 function descendants(el) { return el.children.flatMap(x => [x, ...descendants(x)]); }
@@ -35,9 +38,9 @@ function harness(path, opts = {}) {
   let code = [...source.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(m => m[1]).find(s => s.includes('function addFiles'));
   const config = fs.readFileSync(require('node:path').join(__dirname, '..', 'app.config.json'), 'utf8');
   code = code.replace('__APP_CONFIG_JSON__', config).replace('__BUILD_MANIFEST_JSON__', '{}').replace('__EMBEDDED_ASSET_BUNDLE_JSON__', '{"dependencies":{}}');
-  code = code.replace('      $(\'#versionBadge\').textContent=', '      globalThis.api={state,addFiles,removeFile,activateFile,readPage,analyzeFile,prepareFields,sortRows,cycleSort,buildCurrentCsv,buildCurrentJsonl,visibleFields,renderActive,renderData,normalizedFilenameBase,downloadCsv,copyJsonl,copyCsv,workerSource};\n      $(\'#versionBadge\').textContent=');
+  code = code.replace('      $(\'#versionBadge\').textContent=', '      globalThis.api={state,addFiles,removeFile,activateFile,readPage,analyzeFile,prepareFields,sortRows,cycleSort,buildCurrentCsv,buildCurrentJsonl,visibleFields,renderActive,renderData,normalizedFilenameBase,downloadCsv,copyJsonl,copyCsv,workerSource,requestRemoveFile,renderUi,copyText};\n      $(\'#versionBadge\').textContent=');
   const nodes = new Map(), workers = [], blobs = new Map(), downloads = [], copies = [], fallbackCopies = [];
-  const node = id => { if (!nodes.has(id)) nodes.set(id, new Element()); return nodes.get(id); };
+  const node = id => { if (!nodes.has(id)){const el=new Element();el.ownerDocument=document;nodes.set(id,el)}return nodes.get(id); };
   class WorkerAdapter {
     constructor(url) { this.url = url; this.terminated = false; workers.push(this); }
     postMessage(message) {
@@ -57,19 +60,19 @@ function harness(path, opts = {}) {
   }
   const document = {
     body: new Element('body'), documentElement: new Element('html'), addEventListener() {},
-    querySelector: node,
+    getElementById:id=>node('#'+id),querySelector: node,
     querySelectorAll(selector) {
       if (selector === '#columnsList input[type="checkbox"]') return descendants(node('#columnsList')).filter(x => x.tagName === 'input');
       if (selector === '#dataTableWrap tbody tr') return descendants(node('#dataTableWrap')).filter(x => x.tagName === 'tbody').flatMap(x => x.children);
       return [];
     },
-    createElement(tag) { const el = new Element(tag); if (tag === 'a') el.click = () => downloads.push({ filename: el.download, blob: blobs.get(el.href) }); return el; },
+    createElement(tag) { const el = new Element(tag);el.ownerDocument=document;if (tag === 'a') el.click = () => downloads.push({ filename: el.download, blob: blobs.get(el.href) }); return el; },
     execCommand() { fallbackCopies.push(document.body.children.at(-1).value); if (opts.fallbackError) throw opts.fallbackError; return opts.fallbackResult ?? true; }
   };
-  const context = { document, navigator: { languages: ['en'], clipboard: { writeText: async text => { copies.push(text); return opts.writeText?.(text); } } }, localStorage: { getItem() { return null; }, setItem() {} }, URL: { createObjectURL(blob) { const key = `blob:unit-${blobs.size}-${Math.random()}`; blobs.set(key, blob); return key; }, revokeObjectURL(url) { blobs.delete(url); } }, Worker: WorkerAdapter, Blob, File, TextDecoder, TextEncoder, Uint8Array, Intl, console, setTimeout() { return 1; }, clearTimeout() {}, requestAnimationFrame: fn => fn(), addEventListener() {}, scrollTo() {} };
+  const context = { HTMLElement:Element,document, navigator: { languages: ['en'], clipboard: { writeText: async text => { copies.push(text); return opts.writeText?.(text); } } }, localStorage: { getItem() { return null; }, setItem() {} }, URL: { createObjectURL(blob) { const key = `blob:unit-${blobs.size}-${Math.random()}`; blobs.set(key, blob); return key; }, revokeObjectURL(url) { blobs.delete(url); } }, Worker: WorkerAdapter, Blob, File, TextDecoder, TextEncoder, Uint8Array, Intl, console, setTimeout() { return 1; }, clearTimeout() {}, requestAnimationFrame: fn => fn(), addEventListener() {}, scrollTo() {} };
   context.window = context;
-  vm.createContext(context); vm.runInContext(code, context, { filename: path });
-  return { api: context.api, node, document, workers, blobs, downloads, copies, fallbackCopies };
+  vm.createContext(context);vm.runInContext(fs.readFileSync(require('node:path').join(__dirname,'../components/ui-conventions.js'),'utf8'),context);for(const script of source.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g))if(script[1].includes('window.AppConfirm = Object.freeze'))vm.runInContext(script[1],context);vm.runInContext(code, context, { filename: path });
+  return { context,api: context.api, node, document, workers, blobs, downloads, copies, fallbackCopies };
 }
 const file = (name, text) => new File([text], name, { type: 'application/x-ndjson' });
 const tick = () => new Promise(resolve => setImmediate(resolve));
@@ -90,7 +93,7 @@ if (require.main === module) for (const artifact of artifacts.length ? artifacts
   test(`${artifact}: closing active file loads unvisited successor and export contents`, async () => {
     const h = await pair(artifact), [a, b] = h.api.state.files;
     assert.equal(a.rows.length, 1); assert.equal(b.analysis.totalLines, 3); assert.equal(b.rows.length, 0);
-    await h.node('#fileTabs').children[0].children[1].click(); await settle();
+    await h.node('#fileTabs').children[0].children[1].click();await h.node('#appConfirmOk').click(); await settle();
     assert.equal(h.api.state.activeId, b.id); assert.equal(b.rows.length, 3);
     assert.match(h.node('#dataTableWrap').textContent, /Beta/); assert.equal(h.node('#pageRangeLabel').textContent, 'Lines 1–3 / 3');
     assert.equal(h.api.buildCurrentJsonl(b), bText.trim()); assert.equal(h.api.buildCurrentCsv(b).split('\r\n').length, 4); assertExports(h, true);
@@ -226,4 +229,13 @@ if (require.main === module) for (const artifact of artifacts.length ? artifacts
     old.lateMessage({ data: { type: 'progress', progress: 99 } }); old.lateMessage({ data: { type: 'done', analysis: { totalLines: 99 } } }); old.lateError({ message: 'late' });
     assert.equal(survivor.analysis.totalLines, 3); assert.equal(survivor.rows.length, 3);
   });
+}
+
+if(require.main===module)for(const artifact of artifacts.length?artifacts:[path.join(__dirname,'../src/index.template.html')]){
+ test(`${artifact}: shared language failure keeps current file/page/filename and stays screen-only`,async()=>{const h=await pair(artifact);const fs=h.api.state.files[0];fs.outputFilename='kept';h.context.localStorage.setItem=()=>{throw Error('blocked')};await h.node('#languageButton').click();assert.match(h.node('#languageNotice').textContent,/この画面/);assert.equal(h.api.state.activeId,fs.id);assert.equal(h.node('#outputFilename').value,'kept');assert.match(h.node('#retention').textContent,/タブ/)});
+ test(`${artifact}: stale CSV rejection cannot fallback or publish into newer source`,async()=>{let reject;const h=await pair(artifact,{writeText:()=>new Promise((_,r)=>reject=r)});const pending=h.api.copyCsv();await h.api.activateFile(h.api.state.files[1].id);reject(Error('clipboard blocked'));await pending;assert.equal(h.fallbackCopies.length,0);assert.equal(h.node('#copyNotice').textContent,'')});
+ test(`${artifact}: persistent keyed copy recovery survives language and only matching success clears it`,async()=>{const h=await pair(artifact,{writeText:async()=>{throw Error('blocked')},fallbackResult:false});const fs=h.api.state.files[0];fs.exportError='separate export failure';await h.api.copyCsv();assert.match(h.node('#copyNotice').textContent,/Copy failed/);await h.node('#languageButton').click();assert.match(h.node('#copyNotice').textContent,/コピーできません/);h.context.navigator.clipboard.writeText=async()=>{};await h.api.copyCsv();assert.equal(h.node('#copyNotice').textContent,'');assert.match(h.node('#exportNotice').textContent,/separate export failure/)});
+ test(`${artifact}: fallback attachment throw cleans textarea and does not steal later focus`,async()=>{const h=await pair(artifact,{writeText:async()=>{throw Error('blocked')}});const append=h.document.body.append;let area;const create=h.document.createElement;h.document.createElement=tag=>{const el=create(tag);if(tag==='textarea')area=el;return el};h.document.body.append=function(...items){append.apply(this,items);throw Error('attached then failed')};await h.api.copyCsv();assert.equal(area.removed,true);assert.equal(h.document.body.children.includes(area),false);h.document.body.append=append;const later={};h.document.execCommand=()=>{h.document.activeElement=later;return false};await h.api.copyCsv();assert.equal(h.document.activeElement,later)});
+ test(`${artifact}: confirmed analyzing-file removal cancels scan and focuses surviving selector`,async()=>{const h=harness(artifact,{delayFirst:true});const batch=h.api.addFiles([file('A.jsonl',aText),file('B.jsonl',bText)]);const fs=h.api.state.files[0],first=h.api.requestRemoveFile(fs.id);assert.equal(h.document.activeElement,h.node('#appConfirmCancel'));assert.match(h.node('#appConfirmMessage').textContent,/A.jsonl/);await h.node('#appConfirmCancel').click();await first;assert.equal(h.api.state.files.includes(fs),true);const second=h.api.requestRemoveFile(fs.id);await h.node('#languageButton').click();assert.match(h.node('#appConfirmTitle').textContent,/一覧から/);await h.node('#appConfirmOk').click();await second;await batch;assert.equal(h.workers[0].terminated,true);assert.equal(h.api.state.files.length,1);assert.equal(h.document.activeElement,h.node('#fileSelect'))});
+ test(`${artifact}: delivery throw cleans hidden anchor, delays URL release and preserves page`,async()=>{const h=await pair(artifact),fs=h.api.state.files[0],rows=fs.rows;h.node('#outputFilename').value='edited.csv';let anchor;const create=h.document.createElement;h.document.createElement=tag=>{const el=create(tag);if(tag==='a'){anchor=el;el.click=()=>{throw Error('delivery blocked')}}return el};const timers=[];h.context.setTimeout=fn=>{timers.push(fn);return 1};h.api.downloadCsv();assert.equal(anchor.download,'edited.csv');assert.equal(anchor.hidden,true);assert.equal(anchor.removed,true);assert.equal(h.api.state.files[0].rows,rows);assert.match(h.node('#exportNotice').textContent,/delivery blocked/);assert.equal(h.blobs.has(anchor.href),true);for(const fn of timers)fn();assert.equal(h.blobs.has(anchor.href),false)});
 }

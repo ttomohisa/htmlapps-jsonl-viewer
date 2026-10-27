@@ -11,6 +11,7 @@ const payload = wrapper.match(/id="self-extract-payload"[^>]*>([A-Za-z0-9+/=\r\n
 assert.ok(payload, 'Self-extract payload must exist');
 assert.ok(gunzipSync(Buffer.from(payload[1], 'base64')).equals(readable), 'Self-extract payload must match the readable build');
 function normalize(html) {
+  html=html.replace('__BK_UI_CSS__',fs.readFileSync(path.join(root,'components/ui-conventions.css'),'utf8')).replace('__BK_UI_JS__',fs.readFileSync(path.join(root,'components/ui-conventions.js'),'utf8'));
   for (const [name, placeholder] of [['APP_CONFIG', '__APP_CONFIG_JSON__'], ['BUILD_MANIFEST', '__BUILD_MANIFEST_JSON__'], ['assetBundle', '__EMBEDDED_ASSET_BUNDLE_JSON__']]) {
     html = html.replace(new RegExp(`const ${name} = [^\\r\\n]*;`), `const ${name} = ${placeholder};`);
   }

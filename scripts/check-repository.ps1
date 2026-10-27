@@ -266,3 +266,6 @@ Write-Host "[OK] Header consistency checks passed." -ForegroundColor Green
 if ($LASTEXITCODE -ne 0) { throw "Dialog layout and shield checks failed." }
 & node (Join-Path $Root "scripts/test-sort-focus.cjs") (Join-Path $Root "src/index.template.html") (Join-Path $Root "dist/index.html") (Join-Path $Root "jsonl-viewer.html") (Join-Path $Root "dist/index.self-extract.html")
 if ($LASTEXITCODE -ne 0) { throw "Keyboard sort focus checks failed." }
+
+& node (Join-Path $Root "scripts/test-common-ui.cjs")
+if ($LASTEXITCODE -ne 0) { throw "Shared UI pin/native-script/gzip checks failed." }

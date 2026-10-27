@@ -127,3 +127,7 @@ Current stable Chromium, Firefox, and Safari where File API, Blob Worker, TextDe
 - Opening a modal locks background scrolling; dismissal retains the native dialog focus-return behavior.
 - Keyboard sorting restores focus to the same field button after table rendering. Sorting and source-order CSV export semantics stay unchanged.
 - Preserve the shared shield/check icon before the localized fully-local-processing label.
+
+## Common UI v1
+
+Visible tab-only retention, explicit current-page/source-order CSV and valid-line JSONL scope, shared action availability and common language preference. Remove from list uses cancel-first scoped confirmation and preserves original files. Per-file copy/export recovery persists across language changes; temporary DOM cleanup and source ownership prevent stale completion feedback.

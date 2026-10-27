@@ -452,6 +452,118 @@
       .help-version { margin-top:18px; color:var(--muted); font-size:11px; }
     @media (max-width: 620px) { .help-version { display: none; } }
   </style>
+  <style>/* Browser Kitty shared UI conventions 1.0.0. Explicit opt-in only. */
+[data-bk-button] { min-height: 44px; border: 1px solid #BFC1BA; background: #FFFFFF; color: #202823; cursor: pointer; opacity: 1; }
+[data-bk-button][data-bk-variant="primary"] { background: #16624F; border-color: #16624F; color: #FFFFFF; }
+[data-bk-button][data-bk-variant="primary"]:hover:not(:disabled) { background: #0E503F; border-color: #0E503F; }
+[data-bk-button][data-bk-variant="secondary"] { background: #FFFFFF; color: #202823; border-color: #BFC1BA; }
+[data-bk-button][data-bk-variant="secondary"]:hover:not(:disabled) { background: #FFFFFF; color: #202823; border-color: #BFC1BA; }
+[data-bk-button][data-bk-variant="danger"] { background: #B3261E; border-color: #B3261E; color: #FFFFFF; }
+[data-bk-button][data-bk-variant="danger"]:hover:not(:disabled) { background: #8C1D18; border-color: #8C1D18; color: #FFFFFF; }
+[data-bk-button]:focus-visible, [data-bk-header-action]:focus-visible { outline: 2px solid #16624F; outline-offset: 2px; }
+[data-bk-button]:disabled, [data-bk-button]:disabled:hover, [data-bk-button]:disabled:active { background: #E7EBE7; color: #59635C; border-color: #E7EBE7; cursor: not-allowed; opacity: 1; transform: none; }
+[data-bk-button][data-bk-state="busy"], [data-bk-button][data-bk-state="stopping"], [data-bk-button][data-bk-state="busy"]:hover, [data-bk-button][data-bk-state="stopping"]:hover { background: #E1F0EA; color: #16624F; border-color: #E1F0EA; cursor: wait; opacity: 1; }
+[data-bk-button][data-bk-state="busy"]::before, [data-bk-button][data-bk-state="stopping"]::before { content: ''; display: inline-block; width: .85em; height: .85em; margin-inline-end: .45em; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; vertical-align: -.1em; animation: bk-ui-spin .85s linear infinite; }
+[data-bk-header-action] { min-width: 44px; min-height: 44px; }
+[data-bk-save-status] { display: block; font-size: .85rem; color: #59635C; overflow-wrap: anywhere; }
+[data-bk-save-status="error"] { color: #B3261E; }
+@keyframes bk-ui-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { [data-bk-button] { transition: none; } [data-bk-button]::before { animation: none !important; } }
+</style>
+  <script data-bk-ui-version="1.0.0">/* Browser Kitty shared UI conventions 1.0.0. Build-time embed only; no network. */
+(function (root) {
+  'use strict';
+  const version = '1.0.0';
+  const languageKey = 'browser-kitty:ui-language:v1';
+  const validLanguage = value => value === 'ja' || value === 'en';
+  function safely(read, fallback) { try { return read(); } catch (_) { return fallback; } }
+  function dependency(options, key, readDefault, fallback) {
+    return safely(() => Object.prototype.hasOwnProperty.call(options, key) ? options[key] : readDefault(), fallback);
+  }
+  function storageFrom(options) { return dependency(options, 'storage', () => root.localStorage, null); }
+  function urlFrom(options) { return dependency(options, 'url', () => root.location.href, ''); }
+  function parseUrl(value) { return safely(() => new URL(String(value), 'https://browser-kitty.invalid/'), null); }
+  function readLanguage(storage, key) { return safely(() => storage && storage.getItem(key), null); }
+  function resolveLanguage(options = {}) {
+    const url = parseUrl(urlFrom(options));
+    const query = url && url.searchParams.get('lang');
+    if (validLanguage(query)) return query;
+    const storage = storageFrom(options);
+    const shared = readLanguage(storage, languageKey);
+    if (validLanguage(shared)) return shared;
+    for (const key of options.legacyKeys || []) {
+      const legacy = readLanguage(storage, key);
+      if (validLanguage(legacy)) return legacy;
+    }
+    const languages = dependency(options, 'languages', () => root.navigator.languages || [root.navigator.language], []);
+    for (const value of languages || []) {
+      const language = String(value).toLowerCase().split('-')[0];
+      if (validLanguage(language)) return language;
+    }
+    return 'en';
+  }
+  function chooseLanguage(language, options = {}) {
+    if (!validLanguage(language)) throw new TypeError('Unsupported language: ' + language);
+    const storage = storageFrom(options);
+    const persisted = safely(() => { if (!storage) return false; storage.setItem(languageKey, language); return true; }, false);
+    const url = parseUrl(urlFrom(options));
+    const history = dependency(options, 'history', () => root.history, null);
+    const urlUpdated = safely(() => {
+      if (!url || !url.searchParams.has('lang') || !history) return false;
+      url.searchParams.set('lang', language);
+      history.replaceState(history.state, '', url.href);
+      return true;
+    }, false);
+    return { language, persisted, urlUpdated };
+  }
+  const copy = {
+    en: {
+      sessionOnly: 'Your work will be lost when this tab closes',
+      manualSave: 'Your work is not saved automatically. Save a project file to continue editing later.',
+      dirty: 'Unsaved changes', saving: 'Saving…', saved: 'Saved in this browser',
+      saveFailed: 'Could not save in this browser', downloadStarted: 'Download started',
+      previousResult: 'Previous result', stopping: 'Stopping…', stopProcessing: 'Stop processing', cancel: 'Cancel',
+      languageSessionOnly: 'Language applies to this screen only'
+    },
+    ja: {
+      sessionOnly: '作業内容はこのタブを閉じると消えます',
+      manualSave: '自動保存されません。続きの編集には作業ファイルを保存してください',
+      dirty: '未保存の変更があります', saving: '保存しています…', saved: 'このブラウザーに保存済み',
+      saveFailed: 'このブラウザーに保存できませんでした', downloadStarted: '保存を開始しました',
+      previousResult: '前回の結果', stopping: '中止しています…', stopProcessing: '処理を中止', cancel: 'キャンセル',
+      languageSessionOnly: '言語はこの画面だけに適用されます'
+    }
+  };
+  function text(key, language = 'en', values = {}) {
+    const locale = validLanguage(language) ? language : 'en';
+    let value = copy[locale][key] || copy.en[key] || String(key);
+    if (key === 'saved' && values.time) value += (locale === 'ja' ? '・' : ' · ') + String(values.time);
+    return value.replace(/\{([a-zA-Z0-9_]+)\}/g, (match, name) => Object.prototype.hasOwnProperty.call(values, name) ? String(values[name]) : match);
+  }
+  function setButtonState(button, state) {
+    if (!['ready', 'unavailable', 'busy', 'stopping'].includes(state)) throw new TypeError('Unsupported button state: ' + state);
+    button.disabled = state !== 'ready';
+    button.setAttribute('data-bk-state', state);
+    if (state === 'busy' || state === 'stopping') button.setAttribute('aria-busy', 'true');
+    else button.removeAttribute('aria-busy');
+  }
+  function setSaveStatus(element, options = {}) {
+    const mode = options.mode || 'session';
+    const state = options.state || 'dirty';
+    if (!['session', 'manual', 'autosave'].includes(mode)) throw new TypeError('Unsupported save mode: ' + mode);
+    if (!['dirty', 'saving', 'saved', 'error'].includes(state)) throw new TypeError('Unsupported save state: ' + state);
+    const key = mode === 'session' ? 'sessionOnly' : mode === 'manual' ? 'manualSave' : state === 'error' ? 'saveFailed' : state;
+    element.textContent = text(key, options.language, { time: options.time });
+    element.setAttribute('role', 'status');
+    element.setAttribute('aria-live', 'polite');
+    element.setAttribute('data-bk-save-status', state);
+    element.setAttribute('data-bk-save-mode', mode);
+  }
+  const api = Object.freeze({ version, languageKey, resolveLanguage, chooseLanguage, text, setButtonState, setSaveStatus });
+  root.BrowserKittyUI = api;
+  if (typeof module === 'object' && module.exports) module.exports = api;
+})(typeof globalThis === 'object' ? globalThis : window);
+</script>
 </head>
 <body>
   <header class="app-header">
@@ -474,8 +586,8 @@
         </div>
       </div>
       <div class="header-actions">
-        <button class="language-button" id="languageButton" type="button" aria-label="英語に切り替え" title="英語に切り替え">EN</button>
-        <button class="icon-button" id="helpButton" type="button" data-i18n-title="helpTitle" data-i18n-aria-label="helpTitle" title="使い方と注意事項" aria-label="使い方と注意事項">
+        <button data-bk-button data-bk-variant="secondary" class="language-button" data-bk-header-action id="languageButton" type="button" aria-label="英語に切り替え" title="英語に切り替え">EN</button>
+        <button data-bk-button data-bk-variant="secondary" class="icon-button" data-bk-header-action id="helpButton" type="button" data-i18n-title="helpTitle" data-i18n-aria-label="helpTitle" title="使い方と注意事項" aria-label="使い方と注意事項">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.35 2.35 0 1 1 3.72 1.9c-.92.67-1.52 1.12-1.52 2.1"/><path d="M12 17h.01"/></svg>
         </button>
       </div>
@@ -494,14 +606,14 @@
       </div>
     </section>
 
-    <!-- APP:BEGIN -->
+    <!-- APP:BEGIN --><p id="retention" data-bk-save-status role="status"></p><p id="languageNotice" role="status"></p><p id="inputNotice" role="alert"></p><p id="copyNotice" role="alert"></p><p id="exportNotice" role="alert"></p><p id="exportScope"></p>
     <section class="shell drop-shell" id="emptyState">
       <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-describedby="dropDescription">
         <div>
           <div class="drop-icon" aria-hidden="true"><svg viewBox="0 0 1254 1254" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><g transform="translate(0,1254) scale(0.1,-0.1)" fill="#16624F"><path d="M6170 10966 c-126 -35 -216 -110 -273 -225 l-32 -66 -3 -1987 c-1 -1283 -6 -1988 -12 -1988 -10 0 -315 297 -777 755 -215 213 -252 245 -320 280 -77 39 -80 40 -183 40 -98 0 -110 -3 -171 -32 -82 -40 -159 -115 -196 -190 -26 -54 -28 -67 -28 -173 0 -110 2 -119 32 -180 18 -36 43 -76 56 -90 33 -35 1028 -1021 1447 -1436 256 -253 358 -348 397 -367 97 -50 224 -52 321 -6 48 23 94 68 1356 1319 569 564 522 514 551 576 39 82 50 174 31 263 -27 129 -101 223 -222 282 -65 32 -75 34 -175 34 -105 0 -107 -1 -183 -40 -69 -36 -120 -84 -581 -537 -278 -274 -510 -498 -515 -498 -6 0 -10 707 -10 1963 0 1584 -3 1973 -13 2013 -25 97 -101 196 -189 247 -87 52 -214 69 -308 43z"/><path d="M2930 6701 c-48 -15 -105 -50 -136 -83 -26 -27 -184 -240 -235 -314 -25 -39 -252 -348 -281 -384 -15 -19 -62 -82 -104 -140 -247 -337 -667 -896 -842 -1120 -40 -51 -83 -112 -95 -135 l-22 -40 0 -1165 0 -1165 23 -79 c40 -139 94 -229 202 -337 85 -86 107 -102 200 -147 195 -94 -308 -84 4575 -87 2791 -2 4354 0 4415 7 317 32 565 237 672 553 l23 70 3 1154 c2 1022 1 1160 -13 1200 -17 50 -18 51 -274 387 -213 279 -341 448 -496 659 -65 88 -150 203 -189 255 -39 53 -105 142 -146 199 -41 58 -111 153 -155 213 -44 60 -116 159 -160 220 -156 217 -184 245 -278 273 -42 13 -147 15 -641 15 l-591 0 -250 -250 c-137 -137 -251 -254 -253 -260 -3 -7 236 -10 762 -10 l765 0 75 -107 c41 -60 103 -147 138 -194 35 -48 131 -180 213 -294 83 -114 265 -363 407 -553 l256 -347 -1236 -5 c-1163 -5 -1240 -6 -1292 -24 -119 -39 -232 -141 -270 -244 -22 -59 -107 -341 -142 -471 -34 -131 -123 -237 -237 -283 l-56 -23 -995 0 -995 0 -67 32 c-81 38 -145 96 -181 161 -15 27 -43 105 -63 173 -19 68 -53 183 -74 255 -47 165 -67 207 -120 267 -52 59 -107 97 -185 128 l-60 24 -1243 3 -1243 3 38 52 c20 29 116 158 212 287 96 129 197 267 226 305 62 83 188 257 305 420 47 65 117 161 156 214 38 53 89 124 112 159 l43 62 749 0 c411 0 756 3 765 6 13 5 -41 65 -236 260 l-254 254 -600 -1 c-330 0 -611 -4 -625 -8z m1440 -2565 c0 -7 22 -87 49 -177 156 -522 167 -547 280 -659 87 -87 164 -131 277 -160 75 -19 115 -20 1288 -20 1343 0 1286 -2 1426 66 55 27 96 58 151 113 114 114 124 138 290 704 l43 147 1313 0 1313 0 -2 -967 -3 -968 -27 -51 c-29 -56 -81 -100 -140 -121 -32 -11 -793 -13 -4364 -14 l-4325 0 -42 20 c-57 28 -105 76 -131 131 -21 45 -21 54 -24 1008 l-2 962 1315 0 c1109 0 1315 -2 1315 -14z"/></g></svg></div>
           <h2 data-i18n="dropTitle">JSONL / NDJSONファイルをここにドロップ</h2>
           <p id="dropDescription" data-i18n="dropBody">1行ずつJSONとして解析し、問題のある行も分けて表示します。</p>
-          <button class="button primary" id="chooseButton" type="button">
+          <button data-bk-button data-bk-variant="primary" class="button primary" id="chooseButton" type="button">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 7.5h6l2-2h9v13h-17z"/><path d="M3.5 9.5h17"/></svg>
             <span data-i18n="chooseFiles">ファイルを選択</span>
           </button>
@@ -519,7 +631,7 @@
           <span class="sr-only" data-i18n="openFile">開いているファイル</span>
           <select id="fileSelect" aria-label="Open files"></select>
         </label>
-        <button class="button" id="addFilesButton" type="button">
+        <button data-bk-button data-bk-variant="secondary" class="button" id="addFilesButton" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
           <span data-i18n="addFiles">追加</span>
         </button>
@@ -567,7 +679,7 @@
                 <button id="tableModeButton" class="active" type="button" data-i18n="tableView">Table</button>
                 <button id="recordModeButton" type="button" data-i18n="recordView">Record</button>
               </div>
-              <button class="button" id="columnsButton" type="button">
+              <button data-bk-button data-bk-variant="secondary" class="button" id="columnsButton" type="button">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v14H4zM10 5v14M16 5v14"/></svg>
                 <span data-i18n="columns">列</span>
               </button>
@@ -584,17 +696,17 @@
             <div class="table-wrap" id="dataTableWrap"></div>
             <div class="record-list data-view-hidden" id="recordList"></div>
             <div class="pagination" id="pagination">
-              <button class="button" id="prevButton" type="button" data-i18n-aria-label="previousPage" aria-label="前のページ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg><span data-i18n="previous">前へ</span></button>
+              <button data-bk-button data-bk-variant="secondary" class="button" id="prevButton" type="button" data-i18n-aria-label="previousPage" aria-label="前のページ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14.5 6-6 6 6 6"/></svg><span data-i18n="previous">前へ</span></button>
               <div class="page-info" id="pageInfo"></div>
               <label><span class="sr-only" data-i18n="pageNumber">ページ番号</span><input class="page-jump" id="pageJump" type="number" min="1" inputmode="numeric" aria-label="Page number"></label>
-              <button class="button" id="nextButton" type="button" data-i18n-aria-label="nextPage" aria-label="次のページ"><span data-i18n="next">次へ</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
+              <button data-bk-button data-bk-variant="secondary" class="button" id="nextButton" type="button" data-i18n-aria-label="nextPage" aria-label="次のページ"><span data-i18n="next">次へ</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9.5 6 6 6-6 6"/></svg></button>
             </div>
             <div class="export-panel">
               <label class="export-filename" for="outputFilename"><span data-i18n="outputFilename">CSVファイル名</span><span class="filename-control"><input id="outputFilename" type="text" maxlength="120" autocomplete="off" spellcheck="false"><span class="filename-extension">.csv</span></span></label>
               <div class="export-actions">
-                <button class="button" id="copyJsonlButton" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg><span data-i18n="copyJsonl">JSONLをコピー</span></button>
-                <button class="button" id="copyCsvButton" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg><span data-i18n="copyCsv">CSVをコピー</span></button>
-                <button class="button primary" id="downloadCsvButton" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14"/></svg><span data-i18n="downloadCsv">CSVを保存</span></button>
+                <button data-bk-button data-bk-variant="secondary" class="button" id="copyJsonlButton" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg><span data-i18n="copyJsonl">JSONLをコピー</span></button>
+                <button data-bk-button data-bk-variant="secondary" class="button" id="copyCsvButton" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg><span data-i18n="copyCsv">CSVをコピー</span></button>
+                <button data-bk-button data-bk-variant="primary" class="button primary" id="downloadCsvButton" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14"/></svg><span data-i18n="downloadCsv">CSVを保存</span></button>
               </div>
             </div>
           </div>
@@ -612,12 +724,12 @@
     <button class="mobile-nav-button" type="button" data-mobile-target="data"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v14H4zM4 10h16M9 5v14M15 5v14"/></svg><span data-i18n="dataTab">データ</span></button>
   </nav>
 
-  <div class="app-toast" id="appToast" role="status" aria-live="polite" aria-atomic="true" data-tone="default"><div class="app-toast-message" id="appToastMessage"></div><button class="app-toast-action" id="appToastAction" type="button" hidden></button></div>
+  <div class="app-toast" id="appToast" role="status" aria-live="polite" aria-atomic="true" data-tone="default"><div class="app-toast-message" id="appToastMessage"></div><button data-bk-button data-bk-variant="secondary" class="app-toast-action" id="appToastAction" type="button" hidden></button></div>
 
   <dialog id="helpDialog" aria-labelledby="helpTitle">
-    <div class="dialog-header"><h2 id="helpTitle" data-i18n="helpTitle">使い方と注意事項</h2><button class="icon-button" id="closeHelpButton" type="button" data-i18n-aria-label="close" aria-label="閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+    <div class="dialog-header"><h2 id="helpTitle" data-i18n="helpTitle">使い方と注意事項</h2><button data-bk-button data-bk-variant="secondary" class="icon-button" id="closeHelpButton" type="button" data-i18n-aria-label="close" aria-label="閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
     <div class="dialog-body">
-      <!-- APP:HELP:BEGIN -->
+      <!-- APP:HELP:BEGIN --><p data-i18n="uiHelp"></p>
       <h3 data-i18n="helpBasicsTitle">基本操作</h3>
       <ol><li data-i18n="helpStep1">JSONL / NDJSONファイルを選択またはドロップします。</li><li data-i18n="helpStep2">解析が終わると、正常行・確認が必要な行・フィールド構成を確認できます。</li><li data-i18n="helpStep3">Table / Recordを切り替え、ページ単位で内容を確認します。問題行をクリックすると該当ページへ移動します。</li><li data-i18n="helpStep4">現在ページをJSONLとしてコピー、またはCSVとしてコピー・保存できます。</li></ol>
       <p data-i18n="helpCancel">解析中のタブを閉じるとその解析を中止し、残りのファイルの解析を続けます。</p>
@@ -632,21 +744,225 @@
   </dialog>
 
   <dialog id="cellDialog" aria-labelledby="cellDialogTitle">
-    <div class="dialog-header"><h2 id="cellDialogTitle" data-i18n="cellDetails">セルの内容</h2><button class="icon-button" id="closeCellButton" type="button" data-i18n-aria-label="close" aria-label="閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
-    <div class="dialog-body"><dl class="cell-meta"><dt data-i18n="lineLabel">行</dt><dd id="cellLine"></dd><dt data-i18n="fieldLabel">フィールド</dt><dd id="cellField"></dd><dt data-i18n="typeLabel">型</dt><dd id="cellType"></dd></dl><div class="cell-value-box" id="cellValue"></div><div class="dialog-actions"><button class="button" id="copyCellButton" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg><span data-i18n="copyValue">値をコピー</span></button></div></div>
+    <div class="dialog-header"><h2 id="cellDialogTitle" data-i18n="cellDetails">セルの内容</h2><button data-bk-button data-bk-variant="secondary" class="icon-button" id="closeCellButton" type="button" data-i18n-aria-label="close" aria-label="閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+    <div class="dialog-body"><dl class="cell-meta"><dt data-i18n="lineLabel">行</dt><dd id="cellLine"></dd><dt data-i18n="fieldLabel">フィールド</dt><dd id="cellField"></dd><dt data-i18n="typeLabel">型</dt><dd id="cellType"></dd></dl><div class="cell-value-box" id="cellValue"></div><div class="dialog-actions"><button data-bk-button data-bk-variant="secondary" class="button" id="copyCellButton" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg><span data-i18n="copyValue">値をコピー</span></button></div></div>
   </dialog>
 
   <dialog id="columnsDialog" aria-labelledby="columnsDialogTitle">
-    <div class="dialog-header"><h2 id="columnsDialogTitle" data-i18n="columnsTitle">表示する列</h2><button class="icon-button" id="closeColumnsButton" type="button" data-i18n-aria-label="close" aria-label="閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
-    <div class="dialog-body"><div class="columns-list" id="columnsList"></div><div class="dialog-actions"><button class="button" id="showAllColumnsButton" type="button" data-i18n="showAllColumns">すべて表示</button><button class="button primary" id="applyColumnsButton" type="button" data-i18n="done">完了</button></div></div>
+    <div class="dialog-header"><h2 id="columnsDialogTitle" data-i18n="columnsTitle">表示する列</h2><button data-bk-button data-bk-variant="secondary" class="icon-button" id="closeColumnsButton" type="button" data-i18n-aria-label="close" aria-label="閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+    <div class="dialog-body"><div class="columns-list" id="columnsList"></div><div class="dialog-actions"><button data-bk-button data-bk-variant="secondary" class="button" id="showAllColumnsButton" type="button" data-i18n="showAllColumns">すべて表示</button><button data-bk-button data-bk-variant="primary" class="button primary" id="applyColumnsButton" type="button" data-i18n="done">完了</button></div></div>
   </dialog>
 
-  <script>
+  <!--
+  Reusable confirmation dialog for htmlapps-template.
+  Copy this block into src/index.template.html and adapt tokens/labels as needed.
+  API: await AppConfirm.ask({ title, message, confirmLabel, cancelLabel, tone })
+-->
+<style>
+  .app-confirm-dialog {
+    width: min(420px, calc(100% - 24px));
+    max-width: 100%;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--line, #dadbd6);
+    border-radius: 17px;
+    background: var(--surface, #fff);
+    color: var(--text, #20211f);
+    box-shadow: var(--shadow-md, 0 12px 34px rgba(25, 28, 24, .10));
+  }
+  .app-confirm-dialog::backdrop {
+    background: rgba(15, 17, 14, .48);
+    backdrop-filter: blur(3px);
+  }
+  .app-confirm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 15px 18px 13px;
+    border-bottom: 1px solid var(--line, #dadbd6);
+  }
+  .app-confirm-title { margin: 0; font-size: 17px; letter-spacing: -.01em; }
+  .app-confirm-close {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text, #20211f);
+    cursor: pointer;
+  }
+  .app-confirm-close:hover { background: var(--surface-hover, #e9e9e5); }
+  .app-confirm-close svg { width: 19px; height: 19px; }
+  .app-confirm-body { padding: 18px; }
+  .app-confirm-message {
+    margin: 0;
+    color: var(--muted, #666963);
+    font-size: 13px;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+  }
+  .app-confirm-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .app-confirm-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1px solid var(--line, #dadbd6);
+    border-radius: 11px;
+    background: var(--surface, #fff);
+    color: var(--text, #20211f);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 760;
+    cursor: pointer;
+  }
+  .app-confirm-button:hover {
+    border-color: var(--line-strong, #bfc1ba);
+    background: var(--surface-hover, #e9e9e5);
+  }
+  .app-confirm-button.primary {
+    border-color: var(--accent, #16624f);
+    background: var(--accent, #16624f);
+    color: #fff;
+  }
+  .app-confirm-button.primary:hover {
+    border-color: var(--accent-hover, #0e503f);
+    background: var(--accent-hover, #0e503f);
+  }
+  .app-confirm-button.danger {
+    border-color: var(--danger, #b3261e);
+    background: var(--danger, #b3261e);
+    color: #fff;
+  }
+  .app-confirm-button:focus-visible,
+  .app-confirm-close:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--focus, #4d8bc7) 55%, transparent);
+    outline-offset: 2px;
+  }
+
+  @media (max-width: 520px) {
+    .app-confirm-dialog {
+      width: 100%;
+      max-width: none;
+      margin: auto 0 0;
+      border-width: 1px 0 0;
+      border-radius: 22px 22px 0 0;
+    }
+    .app-confirm-dialog::backdrop {
+      background: rgba(0, 0, 0, .42);
+      backdrop-filter: blur(2px);
+    }
+    .app-confirm-header { padding: 14px 18px 12px; }
+    .app-confirm-body { padding: 12px 18px calc(env(safe-area-inset-bottom) + 18px); }
+    .app-confirm-message { font-size: 14px; line-height: 1.75; }
+    .app-confirm-actions { grid-template-columns: 1fr; gap: 10px; margin-top: 16px; }
+    .app-confirm-button { min-height: 48px; font-size: 14px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .app-confirm-dialog, .app-confirm-button, .app-confirm-close { transition: none !important; }
+  }
+</style>
+
+<dialog class="app-confirm-dialog" id="appConfirmDialog" aria-labelledby="appConfirmTitle" aria-describedby="appConfirmMessage">
+  <div class="app-confirm-header">
+    <h2 class="app-confirm-title" id="appConfirmTitle">Confirm</h2>
+    <button data-bk-button data-bk-variant="secondary" class="app-confirm-close" id="appConfirmClose" type="button" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <path d="M6 6l12 12M18 6 6 18"/>
+      </svg>
+    </button>
+  </div>
+  <div class="app-confirm-body">
+    <p class="app-confirm-message" id="appConfirmMessage"></p>
+    <div class="app-confirm-actions">
+      <button class="app-confirm-button" data-bk-button data-bk-variant="secondary" id="appConfirmCancel" type="button">Cancel</button>
+      <button class="app-confirm-button primary" data-bk-button data-bk-variant="danger" id="appConfirmOk" type="button">OK</button>
+    </div>
+  </div>
+</dialog>
+
+<script>
+  (() => {
+    'use strict';
+
+    const dialog = document.getElementById('appConfirmDialog');
+    const title = document.getElementById('appConfirmTitle');
+    const message = document.getElementById('appConfirmMessage');
+    const closeButton = document.getElementById('appConfirmClose');
+    const cancelButton = document.getElementById('appConfirmCancel');
+    const okButton = document.getElementById('appConfirmOk');
+    let resolver = null;
+    let restoreFocus = null;
+
+    function defaults() {
+      const ja = (document.documentElement.lang || navigator.language || '').toLowerCase().startsWith('ja');
+      return ja
+        ? { title: '確認', confirmLabel: '実行する', cancelLabel: 'キャンセル' }
+        : { title: 'Confirm', confirmLabel: 'Continue', cancelLabel: 'Cancel' };
+    }
+
+    function finish(result) {
+      if (!dialog.open) return;
+      const currentResolver = resolver;
+      resolver = null;
+      dialog.close();
+      if (restoreFocus instanceof HTMLElement && restoreFocus.isConnected) restoreFocus.focus({ preventScroll: true });
+      restoreFocus = null;
+      if (currentResolver) currentResolver(result);
+    }
+
+    function ask(options = {}) {
+      if (dialog.open) finish(false);
+      const fallback = defaults();
+      title.textContent = options.title || fallback.title;
+      message.textContent = options.message || '';
+      cancelButton.textContent = options.cancelLabel || fallback.cancelLabel;
+      okButton.textContent = options.confirmLabel || fallback.confirmLabel;
+      okButton.classList.toggle('danger', options.tone === 'danger');
+      okButton.classList.toggle('primary', options.tone !== 'danger');
+      restoreFocus = document.activeElement;
+
+      return new Promise(resolve => {
+        resolver = resolve;
+        dialog.showModal();
+        requestAnimationFrame(() => cancelButton.focus({ preventScroll: true }));
+      });
+    }
+
+    closeButton.addEventListener('click', () => finish(false));
+    cancelButton.addEventListener('click', () => finish(false));
+    okButton.addEventListener('click', () => finish(true));
+    dialog.addEventListener('cancel', event => {
+      event.preventDefault();
+      finish(false);
+    });
+    dialog.addEventListener('click', event => {
+      const rect = dialog.getBoundingClientRect();
+      const outside = event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom;
+      if (outside) finish(false);
+    });
+
+    window.AppConfirm = Object.freeze({ ask });
+  })();
+</script>
+
+<script>
     (() => {
       'use strict';
 
       const APP_CONFIG = {"$schema":"./schemas/app-config.schema.json","name":"JSONL Viewer","nameJa":"JSONL Viewer","slug":"jsonl-viewer","version":"1.0.2","description":"Open JSONL and NDJSON files locally, inspect records, find invalid lines, and review field types.","descriptionJa":"JSONL / NDJSONファイルをブラウザー内で開き、レコード・不正行・フィールド構成・型の混在を確認します。","defaultLanguage":"auto","repository":{"owner":"ttomohisa","name":"htmlapps-jsonl-viewer"},"build":{"output":"dist/index.html","blockRuntimeNetwork":true,"selfExtract":{"enabled":true,"output":"dist/index.self-extract.html"},"sizeBudget":{"readableWarningMb":10,"selfExtractWarningMb":6}}};
-      const BUILD_MANIFEST = {"schemaVersion":2,"builder":"single-html-app-template/1.2","generatedAtUtc":"2026-10-23T12:44:49.6053795Z","app":{"name":"JSONL Viewer","slug":"jsonl-viewer","version":"1.0.2"},"dependencies":[]};
+      const BUILD_MANIFEST = {"schemaVersion":2,"builder":"single-html-app-template/1.2","generatedAtUtc":"2026-10-27T12:57:39.5413336Z","app":{"name":"JSONL Viewer","slug":"jsonl-viewer","version":"1.0.2"},"dependencies":[]};
       const assetBundle = {"schemaVersion":2,"dependencies":{}};
       const blobUrls = new Set();
       const assetByteCache = new Map();
@@ -665,10 +981,10 @@
       const MAX_ISSUES_RENDERED = 50;
       const MAX_FIELDS = 500;
       const PAGE_READ_CHUNK = 1024 * 1024;
-      const state = { files:[], activeId:null, language:'ja', mobilePage:'overview', generation:0, activeCellText:'', toastTimer:null };
+      const state = { files:[], activeId:null, language:'ja', mobilePage:'overview', generation:0, activeCellText:'',copyRequest:0,cellVersion:0,languageSessionOnly:false,pendingRemove:null,columnsOwner:null,inputError:null,toastTimer:null };
 
       const I18N = {
-        ja: {
+        ja: {uiHelp:'作業はこのタブ内だけに保持します。ファイルを一覧から取り除くと解析・ページ・表示設定を破棄します。CSVは現在ページの表示列を元の行順で出力し、JSONLコピーは有効な行だけが対象です。',
           brandMeta:'JSONL / NDJSONをブラウザー内で確認', introTitle:'JSONL / NDJSONを開いて中身を確認', lead:'レコードを確認し、不正な行やフィールドの型の混在を見つけます。大きなファイルも行単位で解析します。', localBadge:'完全ローカル処理',
           dropTitle:'JSONL / NDJSONファイルをここにドロップ', dropBody:'1行ずつJSONとして解析し、問題のある行も分けて表示します。', chooseFiles:'ファイルを選択', supportedFormats:'対応: .jsonl / .ndjson / .jsonl.txt / .ndjson.txt', openFile:'開いているファイル', addFiles:'追加',
           overviewTitle:'ファイル情報', fieldsTitle:'フィールド', dataTitle:'データプレビュー', dataSubtitle:'現在ページに必要な行だけファイルから読み込みます。', overviewTab:'概要', fieldsTab:'フィールド', dataTab:'データ',
@@ -682,10 +998,10 @@
           line:'行', status:'状態', ok:'正常', issue:'要確認', raw:'Raw', valueColumn:'value', invalidJson:'JSONとして解析できません', blankLine:'空行', invalidUtf8:'UTF-8として読み取れません', bomNotice:'UTF-8 BOMを検出しました。先頭行から除外して解析しています。',
           recordsRange:'{start}–{end} / {total}行', pageOf:'{page} / {pages}ページ', noRows:'表示する行がありません。', issueListCount:'{shown} / {total}件を表示', lineJump:'行 {line}',
           jsonlCopied:'現在ページのJSONLをコピーしました。', csvCopied:'現在ページのCSVをコピーしました。', csvDownloaded:'CSVを保存しました。', valueCopied:'値をコピーしました。', copyFailed:'コピーできませんでした。', csvFailed:'CSVを作成できませんでした。', noValidJsonToCopy:'現在ページにコピーできる正常なJSON行がありません。',
-          removeFile:'閉じる', fileAnalyzing:'解析中', footer:'JSONL Viewer · 完全ローカル処理', bytes:'{count}バイト', records:'{count}行', nullLabel:'null', blank:'(空)', primitiveField:'__value', recordSummaryObject:'object · {count}フィールド', recordSummaryArray:'array · {count}要素', recordSummaryValue:'{type}', recordSummaryIssue:'{message}',
+          removeFile:'一覧から取り除く', fileAnalyzing:'解析中', footer:'JSONL Viewer · 完全ローカル処理', bytes:'{count}バイト', records:'{count}行', nullLabel:'null', blank:'(空)', primitiveField:'__value', recordSummaryObject:'object · {count}フィールド', recordSummaryArray:'array · {count}要素', recordSummaryValue:'{type}', recordSummaryIssue:'{message}',
           fieldPresence:'{count} / {total}', hiddenFieldCount:'ほか{count}フィールド', allColumnsHidden:'表示する列がありません。「列」から表示する列を選択してください。'
         },
-        en: {
+        en: {uiHelp:'Work is kept only in this tab. Removing a file discards analysis, page and view settings. CSV includes visible fields from the current page in original line order; JSONL copy includes valid lines only.',
           brandMeta:'Inspect JSONL / NDJSON locally', introTitle:'Open and inspect JSONL / NDJSON files', lead:'Review records, find invalid lines, and spot mixed field types. Large files are scanned line by line.', localBadge:'Fully local processing',
           dropTitle:'Drop JSONL / NDJSON files here', dropBody:'Each line is parsed as JSON, and problematic lines are kept separate for review.', chooseFiles:'Choose files', supportedFormats:'Supports: .jsonl / .ndjson / .jsonl.txt / .ndjson.txt', openFile:'Open files', addFiles:'Add',
           overviewTitle:'File information', fieldsTitle:'Fields', dataTitle:'Data preview', dataSubtitle:'Only the lines needed for the current page are read from the file.', overviewTab:'Overview', fieldsTab:'Fields', dataTab:'Data',
@@ -699,7 +1015,7 @@
           line:'Line', status:'Status', ok:'Valid', issue:'Review', raw:'Raw', valueColumn:'value', invalidJson:'Could not parse as JSON', blankLine:'Blank line', invalidUtf8:'Could not decode as UTF-8', bomNotice:'A UTF-8 BOM was detected and ignored on the first line.',
           recordsRange:'Lines {start}–{end} / {total}', pageOf:'Page {page} / {pages}', noRows:'No lines to display.', issueListCount:'Showing {shown} / {total}', lineJump:'Line {line}',
           jsonlCopied:'Copied the current page as JSONL.', csvCopied:'Copied the current page as CSV.', csvDownloaded:'Saved CSV.', valueCopied:'Copied value.', copyFailed:'Could not copy.', csvFailed:'Could not create CSV.', noValidJsonToCopy:'There are no valid JSON lines to copy on this page.',
-          removeFile:'Close', fileAnalyzing:'Analyzing', footer:'JSONL Viewer · Fully local processing', bytes:'{count} bytes', records:'{count} lines', nullLabel:'null', blank:'(blank)', primitiveField:'__value', recordSummaryObject:'object · {count} fields', recordSummaryArray:'array · {count} items', recordSummaryValue:'{type}', recordSummaryIssue:'{message}',
+          removeFile:'Remove from list', fileAnalyzing:'Analyzing', footer:'JSONL Viewer · Fully local processing', bytes:'{count} bytes', records:'{count} lines', nullLabel:'null', blank:'(blank)', primitiveField:'__value', recordSummaryObject:'object · {count} fields', recordSummaryArray:'array · {count} items', recordSummaryValue:'{type}', recordSummaryIssue:'{message}',
           fieldPresence:'{count} / {total}', hiddenFieldCount:'{count} more fields', allColumnsHidden:'No fields are visible. Choose fields from “Columns”.'
         }
       };
@@ -708,10 +1024,12 @@
       function writeStorage(key,value){try{localStorage.setItem(key,value);}catch{}}
       function interpolate(text,vars={}){return String(text).replace(/\{(\w+)\}/g,(_,key)=>vars[key] ?? '');}
       function t(key,vars={}){return interpolate(I18N[state.language]?.[key] ?? I18N.en[key] ?? key,vars);}
-      const preferred=(navigator.languages||[navigator.language||'']).some(lang=>String(lang).toLowerCase().startsWith('ja'))?'ja':'en';
-      state.language = readStorage(storageKey) || (APP_CONFIG.defaultLanguage==='auto' ? preferred : APP_CONFIG.defaultLanguage) || 'ja';
-      if(!I18N[state.language]) state.language='ja';
+      state.language=BrowserKittyUI.resolveLanguage({legacyKeys:[storageKey]});
 
+      function ui(ja,en){return state.language==='ja'?ja:en;}
+      function renderUi(){BrowserKittyUI.setSaveStatus($('#retention'),{mode:'session',language:state.language});$('#languageNotice').textContent=state.languageSessionOnly?BrowserKittyUI.text('languageSessionOnly',state.language):'';$('#inputNotice').textContent=state.inputError?t(state.inputError):'';const fs=getActiveFile();$('#copyNotice').textContent=fs?.copyError?ui('コピーできませんでした。再試行するかCSVを保存してください。','Copy failed. Retry or save CSV.')+' '+t(fs.copyError):'';$('#exportNotice').textContent=fs?.exportError?ui('CSVを作成できませんでした。再試行してください。','CSV export failed. Retry.')+' '+fs.exportError:'';$('#exportScope').textContent=fs?ui('CSV: 現在ページの全行（不正行を含む）・表示列、元の行順。JSONLコピー: 現在ページの有効な','CSV: all current-page lines including review rows, visible fields, original line order. JSONL copy: ')+fs.rows.filter(row=>row.valid).length+ui('行だけ、元の行順。全ファイル出力ではありません。',' valid current-page lines in original line order.') :ui('ファイルを読み込むと現在ページを保存できます。','Load a file to save its current page.');for(const id of ['copyJsonlButton','copyCsvButton','downloadCsvButton']){const unavailable=!canExportPage(fs)||(id==='copyJsonlButton'&&!fs.rows.some(row=>row.valid));BrowserKittyUI.setButtonState($('#'+id),fs?.analyzing||fs?.loading?'busy':unavailable?'unavailable':'ready');}if(state.pendingRemove)renderRemoveConfirmation();}
+      function renderRemoveConfirmation(){const fs=state.pendingRemove?.fs;if(!fs)return;$('#appConfirmTitle').textContent=ui('ファイルを一覧から取り除きますか？','Remove file from the list?');$('#appConfirmMessage').textContent=fs.file.name+' — '+ui('解析・現在ページ・表示列・並び順を破棄します。解析中の場合は停止します。元ファイルと言語設定は残ります。','Discard analysis, current page, visible-column and sort settings. An active scan will be cancelled. Original file and language preference remain.');$('#appConfirmCancel').textContent=BrowserKittyUI.text('cancel',state.language);$('#appConfirmOk').textContent=ui('一覧から取り除く','Remove from list');$('#appConfirmClose').setAttribute('aria-label',BrowserKittyUI.text('cancel',state.language));}
+      async function requestRemoveFile(id){const fs=state.files.find(f=>f.id===id);if(!fs)return;const pending=state.pendingRemove={fs};const answer=window.AppConfirm.ask({tone:'danger'});renderRemoveConfirmation();const accepted=await answer;if(state.pendingRemove!==pending)return;state.pendingRemove=null;if(accepted&&state.files.includes(fs)){const removal=removeFile(id);(state.files.length?$('#fileSelect'):$('#chooseButton')).focus();await removal;}}
       function formatNumber(value){return new Intl.NumberFormat(state.language==='ja'?'ja-JP':'en-US').format(value||0);}
       function formatBytes(bytes){if(bytes<1024)return `${formatNumber(bytes)} B`;const units=['KB','MB','GB','TB'];let value=bytes/1024;let i=0;while(value>=1024&&i<units.length-1){value/=1024;i+=1;}return `${value>=100?value.toFixed(0):value>=10?value.toFixed(1):value.toFixed(2)} ${units[i]}`;}
       function basename(name){return name.replace(/\.(jsonl|ndjson)(\.txt)?$/i,'').replace(/\.txt$/i,'');}
@@ -812,7 +1130,7 @@
         const incoming=[...fileList];if(!incoming.length)return;
         const supported=[];let gzipCount=0,unsupportedCount=0;
         for(const file of incoming){if(/\.(jsonl|ndjson)\.gz$/i.test(file.name)){gzipCount++;continue;}if(!supportedName(file.name)){unsupportedCount++;continue;}supported.push(file);}
-        if(gzipCount)toast(t('gzipUnsupported'));if(unsupportedCount)toast(t('unsupportedFile'));if(!supported.length)return;
+        state.inputError=gzipCount?'gzipUnsupported':unsupportedCount?'unsupportedFile':null;renderUi();if(!supported.length)return;
         const added=supported.map(file=>({id:createId(),file,analysis:null,fields:[],rows:[],page:1,pageSize:100,viewMode:'table',hiddenFields:new Set(),sort:null,analyzing:false,progress:0,error:'',dataError:'',outputFilename:`${basename(file.name)}-preview`,worker:null,cancelAnalysis:null}));
         state.files.push(...added);activateFile(added[0].id);
         for(const fileState of added){
@@ -851,7 +1169,7 @@
           const tab=document.createElement('div');tab.className=`file-tab${item.id===state.activeId?' active':''}`;tab.setAttribute('role','button');tab.tabIndex=0;tab.dataset.id=item.id;
           const name=document.createElement('span');name.className='file-tab-name';name.textContent=item.file.name;name.title=item.file.name;
           const close=document.createElement('button');close.className='file-tab-close';close.type='button';close.setAttribute('aria-label',`${t('removeFile')} ${item.file.name}`);close.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg>';
-          close.addEventListener('click',event=>{event.stopPropagation();removeFile(item.id);});
+          close.addEventListener('click',event=>{event.stopPropagation();requestRemoveFile(item.id);});
           tab.append(name,close);tab.addEventListener('click',()=>activateFile(item.id));tab.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();activateFile(item.id);}});tabs.append(tab);
           const option=document.createElement('option');option.value=item.id;option.textContent=`${item.file.name}${item.analyzing?` · ${t('fileAnalyzing')}`:''}`;option.selected=item.id===state.activeId;select.append(option);
         });
@@ -932,7 +1250,7 @@
           if(row.valid){
             const actions=document.createElement('div');actions.className='record-actions';
             const copy=document.createElement('button');copy.type='button';copy.className='button';copy.textContent=t('copyRecordJson');
-            copy.setAttribute('aria-label',t('copyRecordJsonLabel',{line:formatNumber(row.lineNumber)}));copy.disabled=!canExportPage(fileState);
+            copy.setAttribute('data-bk-button','');copy.setAttribute('data-bk-variant','secondary');copy.setAttribute('aria-label',t('copyRecordJsonLabel',{line:formatNumber(row.lineNumber)}));copy.disabled=!canExportPage(fileState);
             copy.addEventListener('click',()=>copyRecordJson(fileState,row,generation,page,pageSize));
             actions.append(copy);details.append(actions);
           }
@@ -954,7 +1272,7 @@
         if(fileState.viewMode==='table')renderTable(fileState);else renderRecords(fileState);
       }
 
-      function openCell(row,fieldName,value){$('#cellLine').textContent=formatNumber(row.lineNumber);$('#cellField').textContent=fieldName;$('#cellType').textContent=typeOfValue(value);const text=prettyValue(value);$('#cellValue').textContent=text||t('blank');state.activeCellText=text;$('#cellDialog').showModal();}
+      function openCell(row,fieldName,value){$('#cellLine').textContent=formatNumber(row.lineNumber);$('#cellField').textContent=fieldName;$('#cellType').textContent=typeOfValue(value);const text=prettyValue(value);$('#cellValue').textContent=text||t('blank');state.activeCellText=text;state.cellVersion++;$('#cellDialog').showModal();}
       function renderColumnsDialog(fileState){const list=$('#columnsList');list.replaceChildren();fileState.fields.forEach(field=>{const label=document.createElement('label');label.className='column-option';const input=document.createElement('input');input.type='checkbox';input.checked=!fileState.hiddenFields.has(field.index);input.dataset.index=String(field.index);const span=document.createElement('span');span.textContent=field.name;label.append(input,span);list.append(label);});}
       async function jumpToLine(fileState,line){fileState.page=Math.max(1,Math.ceil(line/fileState.pageSize));fileState.sort=null;fileState.viewMode='table';state.activeId=fileState.id;setMobilePage('data');renderFileManager();await readPage(fileState);requestAnimationFrame(()=>{const rows=$$('#dataTableWrap tbody tr');const idx=(line-1)%fileState.pageSize;rows[idx]?.scrollIntoView({block:'center',behavior:'smooth'});});}
 
@@ -962,35 +1280,22 @@
       function buildCurrentCsv(fileState){const fields=visibleFields(fileState);const lines=[];lines.push(['__line','__status','__raw',...fields.map(field=>field.name)].map(csvEscape).join(','));for(const row of fileState.rows){const values=[row.lineNumber,row.valid?'valid':'review',row.valid?'':row.raw];for(const field of fields){const value=row.valid?valueForField(row,field):undefined;values.push(value===undefined?'':cellText(value));}lines.push(values.map(csvEscape).join(','));}return lines.join('\r\n');}
       function buildCurrentJsonl(fileState){return fileState.rows.filter(row=>row.valid).map(row=>row.raw).join('\n');}
       function normalizedFilenameBase(){const active=getActiveFile();const fallback=active?`${basename(active.file.name)}-preview`:APP_CONFIG.slug;const input=$('#outputFilename');const cleaned=input.value.trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'-').replace(/\.+$/g,'').trim();let base=cleaned.replace(/\.csv$/i,'')||fallback;if(/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(base))base=`${base}-file`;base=base.slice(0,120);input.value=base;if(active)active.outputFilename=base;return base;}
-      async function copyText(text,isCurrent=()=>true,exact=false){
-        if(!isCurrent())return false;
-        try{await navigator.clipboard.writeText(text);return true;}
-        catch{
-          // Do not start a second write for an obsolete record if the async clipboard request failed.
-          if(!isCurrent())return false;
-          const area=document.createElement('textarea');area.value=text;
-          // Textareas normalize CR to LF. Refuse a lossy fallback for exact record copies.
-          if(exact&&area.value!==text)return false;
-          area.style.position='fixed';area.style.left='-9999px';
-          try{document.body.append(area);area.select();return document.execCommand('copy');}
-          catch{return false;}finally{area.remove();}
-        }
-      }
+      async function copyText(text,isCurrent=()=>true,exact=false){if(!isCurrent())return false;try{await navigator.clipboard.writeText(text);return true;}catch{if(!isCurrent())return false;const origin=document.activeElement;let area;try{area=document.createElement('textarea');area.value=text;if(exact&&area.value!==text)return false;area.style.position='fixed';area.style.left='-9999px';document.body.append(area);area.select();return document.execCommand('copy');}catch{return false;}finally{const owned=area&&document.activeElement===area;try{area?.remove();}finally{if(owned&&isCurrent()&&origin?.isConnected&&origin.focus)origin.focus();}}}}
+      async function copyWithStatus(text,fs,successKey,isCurrent=()=>true,exact=false,vars={}){const request=++state.copyRequest,current=()=>request===state.copyRequest&&getActiveFile()===fs&&state.files.includes(fs)&&isCurrent();if(!current())return;const copied=await copyText(text,current,exact);if(current()){fs.copyError=copied?null:'copyFailed';toast(t(copied?successKey:'copyFailed',vars));renderUi();}}
       async function copyRecordJson(fileState,row,generation,page,pageSize){
         const isCurrent=()=>generation===state.generation&&getActiveFile()===fileState&&canExportPage(fileState)&&fileState.page===page&&fileState.pageSize===pageSize&&row.valid&&fileState.rows.includes(row);
         if(!isCurrent())return;
-        // Copy the parsed line's original text, never a reserialization that can lose numeric precision or duplicate keys.
-        const copied=await copyText(row.raw,isCurrent,true);
-        // A started clipboard write cannot be cancelled; only its stale UI feedback is suppressed.
-        if(isCurrent())toast(t(copied?'recordJsonCopied':'copyFailed',{line:formatNumber(row.lineNumber)}));
+        // Preserve the original JSON line, including precision and duplicate keys.
+        await copyWithStatus(row.raw,fileState,'recordJsonCopied',isCurrent,true,{line:formatNumber(row.lineNumber)});
       }
+
       function canExportPage(fileState){return Boolean(fileState?.analysis&&!fileState.analyzing&&!fileState.loading&&!fileState.error&&!fileState.dataError&&fileState.rows.length);}
-      async function copyJsonl(){const fs=getActiveFile();if(!canExportPage(fs))return;const text=buildCurrentJsonl(fs);if(!text){toast(t('noValidJsonToCopy'));return;}toast(t(await copyText(text)?'jsonlCopied':'copyFailed'));}
-      async function copyCsv(){const fs=getActiveFile();if(!canExportPage(fs))return;try{toast(t(await copyText(buildCurrentCsv(fs))?'csvCopied':'copyFailed'));}catch{toast(t('csvFailed'));}}
-      function downloadCsv(){const fs=getActiveFile();if(!canExportPage(fs))return;try{const csv=buildCurrentCsv(fs);const url=URL.createObjectURL(new Blob(['\uFEFF',csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=`${normalizedFilenameBase()}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast(t('csvDownloaded'));}catch{toast(t('csvFailed'));}}
+      async function copyJsonl(){const fs=getActiveFile();if(!canExportPage(fs))return;const generation=state.generation,rows=fs.rows,text=buildCurrentJsonl(fs);if(!text){fs.copyError='noValidJsonToCopy';renderUi();return;}await copyWithStatus(text,fs,'jsonlCopied',()=>state.generation===generation&&fs.rows===rows&&canExportPage(fs));}
+      async function copyCsv(){const fs=getActiveFile();if(!canExportPage(fs))return;const generation=state.generation,rows=fs.rows;try{await copyWithStatus(buildCurrentCsv(fs),fs,'csvCopied',()=>state.generation===generation&&fs.rows===rows&&canExportPage(fs));}catch{if(getActiveFile()===fs){fs.copyError='csvFailed';renderUi();}}}
+      function downloadCsv(){const fs=getActiveFile();if(!canExportPage(fs))return;let a,url;try{const csv=buildCurrentCsv(fs),name=`${normalizedFilenameBase()}.csv`;fs.exportError=null;url=URL.createObjectURL(new Blob(['\uFEFF',csv],{type:'text/csv;charset=utf-8'}));a=document.createElement('a');a.href=url;a.download=name;a.hidden=true;document.body.append(a);a.click();toast(BrowserKittyUI.text('downloadStarted',state.language));}catch(e){fs.exportError=e.message||String(e);}finally{try{a?.remove();}finally{if(url)setTimeout(()=>URL.revokeObjectURL(url),1000);}renderUi();}}
 
       function renderActive(){
-        const fileState=getActiveFile();setLoadedUi(Boolean(fileState));
+        const fileState=getActiveFile();setLoadedUi(Boolean(fileState));renderUi();
         const exportReady=canExportPage(fileState);
         $('#copyJsonlButton').disabled=!exportReady||!fileState.rows.some(row=>row.valid);
         $('#copyCsvButton').disabled=!exportReady;$('#downloadCsvButton').disabled=!exportReady;
@@ -1013,9 +1318,9 @@
       const dropzone=$('#dropzone');['dragenter','dragover'].forEach(type=>dropzone.addEventListener(type,event=>{event.preventDefault();dropzone.classList.add('dragover');}));['dragleave','drop'].forEach(type=>dropzone.addEventListener(type,event=>{event.preventDefault();dropzone.classList.remove('dragover');}));dropzone.addEventListener('click',()=>$('#fileInput').click());dropzone.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();$('#fileInput').click();}});document.addEventListener('dragover',event=>{if(event.dataTransfer?.types?.includes('Files'))event.preventDefault();});document.addEventListener('drop',async event=>{if(!event.dataTransfer?.files?.length)return;event.preventDefault();dropzone.classList.remove('dragover');await addFiles(Array.from(event.dataTransfer.files));});
       $('#fileSelect').addEventListener('change',event=>activateFile(event.target.value));$('#pageSizeSelect').addEventListener('change',async event=>{const fs=getActiveFile();if(!fs)return;fs.pageSize=Number(event.target.value);fs.page=1;await readPage(fs);});$('#prevButton').addEventListener('click',async()=>{const fs=getActiveFile();if(!fs||fs.page<=1)return;fs.page-=1;await readPage(fs);});$('#nextButton').addEventListener('click',async()=>{const fs=getActiveFile();if(!fs)return;const pages=Math.max(1,Math.ceil(fs.analysis.totalLines/fs.pageSize));if(fs.page>=pages)return;fs.page+=1;await readPage(fs);});$('#pageJump').addEventListener('change',async event=>{const fs=getActiveFile();if(!fs)return;const pages=Math.max(1,Math.ceil(fs.analysis.totalLines/fs.pageSize));const page=Math.min(pages,Math.max(1,Number.parseInt(event.target.value,10)||1));if(page===fs.page){event.target.value=String(page);return;}fs.page=page;await readPage(fs);});
       $('#tableModeButton').addEventListener('click',()=>{const fs=getActiveFile();if(!fs)return;fs.viewMode='table';renderData(fs);});$('#recordModeButton').addEventListener('click',()=>{const fs=getActiveFile();if(!fs)return;fs.viewMode='record';renderData(fs);});
-      $('#columnsButton').addEventListener('click',()=>{const fs=getActiveFile();if(!fs)return;renderColumnsDialog(fs);$('#columnsDialog').showModal();});$('#closeColumnsButton').addEventListener('click',()=>$('#columnsDialog').close());$('#showAllColumnsButton').addEventListener('click',()=>$$('#columnsList input[type="checkbox"]').forEach(input=>{input.checked=true;}));$('#applyColumnsButton').addEventListener('click',()=>{const fs=getActiveFile();if(!fs)return;fs.hiddenFields.clear();$$('#columnsList input[type="checkbox"]').forEach(input=>{if(!input.checked)fs.hiddenFields.add(Number(input.dataset.index));});$('#columnsDialog').close();renderData(fs);});
+      $('#columnsButton').addEventListener('click',()=>{const fs=getActiveFile();if(!fs)return;state.columnsOwner=fs;renderColumnsDialog(fs);$('#columnsDialog').showModal();});$('#closeColumnsButton').addEventListener('click',()=>$('#columnsDialog').close());$('#showAllColumnsButton').addEventListener('click',()=>$$('#columnsList input[type="checkbox"]').forEach(input=>{input.checked=true;}));$('#applyColumnsButton').addEventListener('click',()=>{const fs=getActiveFile();if(!fs||fs!==state.columnsOwner){$('#columnsDialog').close();return;}fs.hiddenFields.clear();$$('#columnsList input[type="checkbox"]').forEach(input=>{if(!input.checked)fs.hiddenFields.add(Number(input.dataset.index));});$('#columnsDialog').close();renderData(fs);});
       $('#outputFilename').addEventListener('input',event=>{const fs=getActiveFile();if(fs)fs.outputFilename=event.target.value;});$('#outputFilename').addEventListener('blur',normalizedFilenameBase);$('#copyJsonlButton').addEventListener('click',copyJsonl);$('#copyCsvButton').addEventListener('click',copyCsv);$('#downloadCsvButton').addEventListener('click',downloadCsv);
-      $('#languageButton').addEventListener('click',()=>{state.language=state.language==='ja'?'en':'ja';writeStorage(storageKey,state.language);applyLanguage();});const helpDialog=$('#helpDialog');$('#helpButton').addEventListener('click',()=>helpDialog.showModal());$('#closeHelpButton').addEventListener('click',()=>helpDialog.close());closeDialogOnBackdrop(helpDialog);const cellDialog=$('#cellDialog');$('#closeCellButton').addEventListener('click',()=>cellDialog.close());closeDialogOnBackdrop(cellDialog);$('#copyCellButton').addEventListener('click',async()=>toast(t(await copyText(state.activeCellText)?'valueCopied':'copyFailed')));closeDialogOnBackdrop($('#columnsDialog'));$$('.mobile-nav-button').forEach(button=>button.addEventListener('click',()=>setMobilePage(button.dataset.mobileTarget)));
+      $('#languageButton').addEventListener('click',()=>{state.language=state.language==='ja'?'en':'ja';state.languageSessionOnly=!BrowserKittyUI.chooseLanguage(state.language).persisted;applyLanguage();});const helpDialog=$('#helpDialog');$('#helpButton').addEventListener('click',()=>helpDialog.showModal());$('#closeHelpButton').addEventListener('click',()=>helpDialog.close());closeDialogOnBackdrop(helpDialog);const cellDialog=$('#cellDialog');$('#closeCellButton').addEventListener('click',()=>cellDialog.close());closeDialogOnBackdrop(cellDialog);$('#copyCellButton').addEventListener('click',async()=>{const fs=getActiveFile(),version=state.cellVersion,generation=state.generation;await copyWithStatus(state.activeCellText,fs,'valueCopied',()=>state.cellVersion===version&&state.generation===generation);});closeDialogOnBackdrop($('#columnsDialog'));$$('.mobile-nav-button').forEach(button=>button.addEventListener('click',()=>setMobilePage(button.dataset.mobileTarget)));
 
       $('#versionBadge').textContent=`v${APP_CONFIG.version}`;setLoadedUi(false);applyLanguage();
     })();
