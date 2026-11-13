@@ -81,7 +81,7 @@
     .brand-mark svg { width: 40px; height: 40px; display: block; }
     .brand-copy { min-width: 0; }
     .brand-name { margin: 0; display: flex; align-items: center; gap: 8px; font-weight: 780; letter-spacing: -.02em; white-space: nowrap; }
-    .version-badge { padding: 2px 6px; border-radius: 999px; background: var(--surface-muted); color: var(--muted); font-size: 10px; font-weight: 720; letter-spacing: .02em; }
+    .version-badge { display: inline-flex; align-items: center; margin-left: 7px; padding: 1px 6px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-muted); color: var(--muted); font-size: 11px; font-weight: 650; vertical-align: 2px; }
     .brand-meta { margin: 1px 0 0; color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .header-actions { display: flex; align-items: center; gap: 8px; }
     .language-button,.icon-button {
@@ -94,6 +94,8 @@
     .language-button:hover,.icon-button:hover { background: var(--surface-hover); }
     .icon-button { display: grid; place-items: center; width: 38px; height: 38px; padding: 0; }
     .icon-button svg { width: 20px; height: 20px; }
+    .dialog-close { display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 9px; background: transparent; cursor: pointer; }
+    .dialog-close svg { width: 18px; height: 18px; }
     .main { width: min(1180px,calc(100% - 32px)); margin: 0 auto; padding: 28px 0 54px; }
     .page-intro { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; padding-bottom: 20px; }
     .page-intro h1 { margin: 0; font-size: clamp(24px,3vw,34px); line-height: 1.18; letter-spacing: -.04em; }
@@ -103,16 +105,17 @@
       display: inline-flex;
       align-items: center;
       gap: 7px;
-      min-height: 34px;
-      padding: 7px 10px;
-      border: 1px solid color-mix(in srgb,var(--accent) 24%,var(--line));
-      border-radius: 999px;
-      background: var(--accent-soft);
+      margin-top: 3px;
+      padding: 7px 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
       color: var(--accent);
       font-size: 12px;
-      font-weight: 760;
+      font-weight: 500;
+      white-space: nowrap;
     }
-    .local-badge svg { width: 17px; height: 17px; }
+    .local-badge svg { width: 15px; height: 15px; }
     .shell { border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-sm); }
     .drop-shell { padding: 18px; }
     .dropzone {
@@ -323,7 +326,7 @@
     .column-option span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
     .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
     .mobile-bottom-bar { display: none; }
-    .footer { padding: 12px 4px 0; display: flex; justify-content: center; color: var(--muted); font-size: 10px; }
+    .footer { padding: 12px 4px 0; display: flex; justify-content: flex-start; color: var(--muted); font-size: 12px; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     @media (max-width: 860px) {
       .summary-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -615,7 +618,7 @@
   <div class="app-toast" id="appToast" role="status" aria-live="polite" aria-atomic="true" data-tone="default"><div class="app-toast-message" id="appToastMessage"></div><button class="app-toast-action" id="appToastAction" type="button" hidden></button></div>
 
   <dialog id="helpDialog" aria-labelledby="helpTitle">
-    <div class="dialog-header"><h2 id="helpTitle" data-i18n="helpTitle">使い方と注意事項</h2><button class="icon-button" id="closeHelpButton" type="button" data-i18n-aria-label="close" aria-label="閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+    <div class="dialog-header"><h2 id="helpTitle" data-i18n="helpTitle">使い方と注意事項</h2><button class="dialog-close" id="closeHelpButton" type="button" data-i18n-aria-label="close" aria-label="閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
     <div class="dialog-body">
       <!-- APP:HELP:BEGIN -->
       <h3 data-i18n="helpBasicsTitle">基本操作</h3>
@@ -682,7 +685,7 @@
           line:'行', status:'状態', ok:'正常', issue:'要確認', raw:'Raw', valueColumn:'value', invalidJson:'JSONとして解析できません', blankLine:'空行', invalidUtf8:'UTF-8として読み取れません', bomNotice:'UTF-8 BOMを検出しました。先頭行から除外して解析しています。',
           recordsRange:'{start}–{end} / {total}行', pageOf:'{page} / {pages}ページ', noRows:'表示する行がありません。', issueListCount:'{shown} / {total}件を表示', lineJump:'行 {line}',
           jsonlCopied:'現在ページのJSONLをコピーしました。', csvCopied:'現在ページのCSVをコピーしました。', csvDownloaded:'CSVを保存しました。', valueCopied:'値をコピーしました。', copyFailed:'コピーできませんでした。', csvFailed:'CSVを作成できませんでした。', noValidJsonToCopy:'現在ページにコピーできる正常なJSON行がありません。',
-          removeFile:'閉じる', fileAnalyzing:'解析中', footer:'JSONL Viewer · 完全ローカル処理', bytes:'{count}バイト', records:'{count}行', nullLabel:'null', blank:'(空)', primitiveField:'__value', recordSummaryObject:'object · {count}フィールド', recordSummaryArray:'array · {count}要素', recordSummaryValue:'{type}', recordSummaryIssue:'{message}',
+          removeFile:'閉じる', fileAnalyzing:'解析中', footer:'JSONL Viewer · MIT License · 行もレコードもブラウザー内で完結', bytes:'{count}バイト', records:'{count}行', nullLabel:'null', blank:'(空)', primitiveField:'__value', recordSummaryObject:'object · {count}フィールド', recordSummaryArray:'array · {count}要素', recordSummaryValue:'{type}', recordSummaryIssue:'{message}',
           fieldPresence:'{count} / {total}', hiddenFieldCount:'ほか{count}フィールド', allColumnsHidden:'表示する列がありません。「列」から表示する列を選択してください。'
         },
         en: {
@@ -699,7 +702,7 @@
           line:'Line', status:'Status', ok:'Valid', issue:'Review', raw:'Raw', valueColumn:'value', invalidJson:'Could not parse as JSON', blankLine:'Blank line', invalidUtf8:'Could not decode as UTF-8', bomNotice:'A UTF-8 BOM was detected and ignored on the first line.',
           recordsRange:'Lines {start}–{end} / {total}', pageOf:'Page {page} / {pages}', noRows:'No lines to display.', issueListCount:'Showing {shown} / {total}', lineJump:'Line {line}',
           jsonlCopied:'Copied the current page as JSONL.', csvCopied:'Copied the current page as CSV.', csvDownloaded:'Saved CSV.', valueCopied:'Copied value.', copyFailed:'Could not copy.', csvFailed:'Could not create CSV.', noValidJsonToCopy:'There are no valid JSON lines to copy on this page.',
-          removeFile:'Close', fileAnalyzing:'Analyzing', footer:'JSONL Viewer · Fully local processing', bytes:'{count} bytes', records:'{count} lines', nullLabel:'null', blank:'(blank)', primitiveField:'__value', recordSummaryObject:'object · {count} fields', recordSummaryArray:'array · {count} items', recordSummaryValue:'{type}', recordSummaryIssue:'{message}',
+          removeFile:'Close', fileAnalyzing:'Analyzing', footer:'JSONL Viewer · MIT License · Lines and records stay in the browser', bytes:'{count} bytes', records:'{count} lines', nullLabel:'null', blank:'(blank)', primitiveField:'__value', recordSummaryObject:'object · {count} fields', recordSummaryArray:'array · {count} items', recordSummaryValue:'{type}', recordSummaryIssue:'{message}',
           fieldPresence:'{count} / {total}', hiddenFieldCount:'{count} more fields', allColumnsHidden:'No fields are visible. Choose fields from “Columns”.'
         }
       };
