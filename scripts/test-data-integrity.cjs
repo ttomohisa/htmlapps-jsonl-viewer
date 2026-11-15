@@ -12,11 +12,11 @@ function between(start, end) {
   return source.slice(a, b);
 }
 const api = new Function(
-  "const state={language:'en'};const renderData=()=>{};",
-  between('class JsonlExactInteger', 'function summarizeValue'),
-  between('function visibleFields', 'function cellNode'),
-  between('function csvEscape', 'function normalizedFilenameBase'),
-  'return {parseJsonPreservingIntegers,normalizeRecordValue,cellText,prettyValue,valueForField,sortRows,buildCurrentCsv,csvEscape,csvHeaders,typeOfValue};'
+  "const state={language:'en'};const renderData=()=>{};\n"
+  + between('class JsonlExactInteger', 'function summarizeValue')
+  + between('function visibleFields', 'function cellNode')
+  + between('function csvEscape', 'function normalizedFilenameBase')
+  + "\nreturn {parseJsonPreservingIntegers,normalizeRecordValue,cellText,prettyValue,valueForField,sortRows,buildCurrentCsv,csvEscape,csvHeaders,typeOfValue};"
 )();
 
 function row(raw, lineNumber) {
@@ -72,7 +72,7 @@ assert.match(source,/event\.target===tab&&\(event\.key==='Enter'/);
 
 async function workerStatistics() {
   const workerDeclaration=between('function workerSource()', 'async function analyzeFile(');
-  const workerCode=new Function('const CHECKPOINT_INTERVAL=1000, MAX_ISSUES_STORED=1000, MAX_FIELDS=500;',workerDeclaration,'return workerSource();')();
+  const workerCode=new Function('const CHECKPOINT_INTERVAL=1000, MAX_ISSUES_STORED=1000, MAX_FIELDS=500;\n'+workerDeclaration+'\nreturn workerSource();')();
   const emitted=[],scope={TextDecoder,Uint8Array,self:{postMessage:m=>emitted.push(m)}};
   vm.runInNewContext(workerCode,scope);
   await scope.self.onmessage({data:{file:new Blob(['{"__value":"actual"}\n42\n{"__value":7}\n'])}});
