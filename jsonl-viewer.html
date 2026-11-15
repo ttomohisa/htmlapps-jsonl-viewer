@@ -719,10 +719,49 @@
       function formatBytes(bytes){if(bytes<1024)return `${formatNumber(bytes)} B`;const units=['KB','MB','GB','TB'];let value=bytes/1024;let i=0;while(value>=1024&&i<units.length-1){value/=1024;i+=1;}return `${value>=100?value.toFixed(0):value>=10?value.toFixed(1):value.toFixed(2)} ${units[i]}`;}
       function basename(name){return name.replace(/\.(jsonl|ndjson)(\.txt)?$/i,'').replace(/\.txt$/i,'');}
       function supportedName(name){return /\.(jsonl|ndjson)(\.txt)?$/i.test(name);}
-      function typeOfValue(value){if(value===null)return 'null';if(Array.isArray(value))return 'array';if(typeof value==='number')return Number.isInteger(value)?'integer':'number';return typeof value;}
-      function normalizeRecordValue(value){if(value&&typeof value==='object'&&!Array.isArray(value))return value;return {__value:value};}
-      function cellText(value){if(value===null)return 'null';if(value===undefined)return '';if(typeof value==='string')return value;if(typeof value==='object')return JSON.stringify(value);return String(value);}
-      function prettyValue(value){if(value===undefined)return '';if(typeof value==='string')return value;if(typeof value==='object'&&value!==null)return JSON.stringify(value,null,2);return String(value);}
+      // Keep unsafe integer literals as exact decimal text, including nested values.
+      class JsonlExactInteger { constructor(raw){this.raw=raw;} toString(){return this.raw;} }
+      function isRecordObject(value){return value!==null&&typeof value==='object'&&!Array.isArray(value)&&!(value instanceof JsonlExactInteger);}
+      function parseJsonPreservingIntegers(raw){
+        const marker='\u0000JSONL_INT_'+Math.random().toString(36).slice(2)+'_';
+        let masked='',inString=false,escaped=false,i=0;const integers=[];
+        while(i<raw.length){
+          const ch=raw[i];
+          if(inString){masked+=ch;if(escaped)escaped=false;else if(ch==='\\')escaped=true;else if(ch==='"')inString=false;i++;continue;}
+          if(ch==='"'){inString=true;masked+=ch;i++;continue;}
+          if(ch==='-'||(ch>='0'&&ch<='9')){
+            const match=/^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/.exec(raw.slice(i));
+            if(match){
+              const token=match[0];
+              if(/^-?(?:0|[1-9]\d*)$/.test(token)&&!Number.isSafeInteger(Number(token))){
+                masked+=JSON.stringify(marker+integers.length);integers.push(token);
+              }else masked+=token;
+              i+=token.length;continue;
+            }
+          }
+          masked+=ch;i++;
+        }
+        if(!integers.length)return JSON.parse(raw);
+        return JSON.parse(masked,(_key,value)=>{
+          if(typeof value!=='string'||!value.startsWith(marker))return value;
+          const suffix=value.slice(marker.length),index=Number(suffix);
+          return /^\d+$/.test(suffix)&&Number.isSafeInteger(index)&&index<integers.length&&String(index)===suffix
+            ?new JsonlExactInteger(integers[index]):value;
+        });
+      }
+      function stringifyExactJson(value,pretty=false,depth=0){
+        if(value instanceof JsonlExactInteger)return value.raw;
+        if(value===null||typeof value!=='object')return JSON.stringify(value);
+        const array=Array.isArray(value),keys=array?value.map((_,i)=>i):Object.keys(value);
+        if(!keys.length)return array?'[]':'{}';
+        const spacer=pretty?'  '.repeat(depth+1):'',joiner=pretty?',\n':',';
+        const parts=keys.map(key=>(pretty?spacer:'')+(array?'':JSON.stringify(key)+(pretty?': ':':'))+stringifyExactJson(value[key],pretty,depth+1));
+        return (array?'[':'{')+(pretty?'\n':'')+parts.join(joiner)+(pretty?'\n'+'  '.repeat(depth):'')+(array?']':'}');
+      }
+      function typeOfValue(value){if(value===null)return 'null';if(value instanceof JsonlExactInteger)return 'integer';if(Array.isArray(value))return 'array';if(typeof value==='number')return Number.isInteger(value)?'integer':'number';return typeof value;}
+      function normalizeRecordValue(value){if(isRecordObject(value))return value;return {__value:value};}
+      function cellText(value){if(value===null)return 'null';if(value===undefined)return '';if(typeof value==='string')return value;if(typeof value==='object')return stringifyExactJson(value);return String(value);}
+      function prettyValue(value){if(value===undefined)return '';if(typeof value==='string')return value;if(typeof value==='object'&&value!==null)return stringifyExactJson(value,true);return String(value);}
       function summarizeValue(value){const type=typeOfValue(value);if(type==='object')return t('recordSummaryObject',{count:Object.keys(value).length});if(type==='array')return t('recordSummaryArray',{count:value.length});return t('recordSummaryValue',{type});}
       function createId(){return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;}
       function getActiveFile(){return state.files.find(item=>item.id===state.activeId)||null;}
@@ -745,7 +784,7 @@
             const bom=first3.length===3&&first3[0]===0xEF&&first3[1]===0xBB&&first3[2]===0xBF;
             let offset=0,lineNo=1,lineStart=0,parts=[],partsLength=0,lastProgress=-1;
             let totalLines=0,valid=0,invalid=0,blank=0,encodingErrors=0,objectLines=0,otherValues=0,crlf=0,lf=0,maxLineBytes=0;
-            const checkpoints=[];const issues=[];const fields=new Map();let fieldsOverflow=false;
+            const checkpoints=[];const issues=[];const fields=new Map();const NON_OBJECT_FIELD=Symbol('top-level-value');let fieldsOverflow=false;
             const recordCheckpoint=()=>{if((lineNo-1)%CHECKPOINT_INTERVAL===0)checkpoints.push([lineNo,lineStart]);};
             recordCheckpoint();
             const processLine=(bytes,rawStart,ending)=>{
@@ -755,11 +794,12 @@
               if(text.trim()===''){invalid+=1;blank+=1;if(issues.length<MAX_ISSUES_STORED)issues.push({line:lineNo,byteOffset:rawStart,kind:'blank',message:'Blank line',raw:''});lineNo+=1;return;}
               try{
                 const value=JSON.parse(text);valid+=1;
-                const record=value&&typeof value==='object'&&!Array.isArray(value)?value:{__value:value};
-                if(value&&typeof value==='object'&&!Array.isArray(value))objectLines+=1;else otherValues+=1;
-                for(const [key,val] of Object.entries(record)){
-                  let stat=fields.get(key);
-                  if(!stat){if(fields.size>=MAX_FIELDS){fieldsOverflow=true;continue;}stat={name:key,count:0,types:{}};fields.set(key,stat);}
+                const isObject=value&&typeof value==='object'&&!Array.isArray(value);
+                const entries=isObject?Object.entries(value).map(([key,val])=>[key,val,false]):[['__value',value,true]];
+                if(isObject)objectLines+=1;else otherValues+=1;
+                for(const [key,val,virtual] of entries){
+                  const mapKey=virtual?NON_OBJECT_FIELD:key;let stat=fields.get(mapKey);
+                  if(!stat){if(fields.size>=MAX_FIELDS){fieldsOverflow=true;continue;}stat={name:key,virtual,count:0,types:{}};fields.set(mapKey,stat);}
                   stat.count+=1;const type=valueType(val);stat.types[type]=(stat.types[type]||0)+1;
                 }
               }catch(error){invalid+=1;if(issues.length<MAX_ISSUES_STORED)issues.push({line:lineNo,byteOffset:rawStart,kind:'json',message:String(error?.message||'Invalid JSON').slice(0,240),raw:text.slice(0,500)});}
@@ -883,7 +923,7 @@
 
       function concatBytes(parts,total){const out=new Uint8Array(total);let p=0;for(const part of parts){out.set(part,p);p+=part.length;}return out;}
       function findCheckpoint(checkpoints,targetLine){let lo=0,hi=checkpoints.length-1,best=checkpoints[0]||[1,0];while(lo<=hi){const mid=(lo+hi)>>1;const cp=checkpoints[mid];if(cp[0]<=targetLine){best=cp;lo=mid+1;}else hi=mid-1;}return best;}
-      function parseLineBytes(bytes,lineNumber){let hadBom=false;if(lineNumber===1&&bytes.length>=3&&bytes[0]===0xEF&&bytes[1]===0xBB&&bytes[2]===0xBF){bytes=bytes.subarray(3);hadBom=true;}let raw='';try{raw=new TextDecoder('utf-8',{fatal:true}).decode(bytes);}catch{return {lineNumber,valid:false,kind:'utf8',error:t('invalidUtf8'),raw:''};}if(raw.trim()==='')return {lineNumber,valid:false,kind:'blank',error:t('blankLine'),raw};try{const value=JSON.parse(raw);return {lineNumber,valid:true,raw,value,record:normalizeRecordValue(value),hadBom};}catch(error){return {lineNumber,valid:false,kind:'json',error:t('invalidJson'),detail:error?.message||'',raw};}}
+      function parseLineBytes(bytes,lineNumber){let hadBom=false;if(lineNumber===1&&bytes.length>=3&&bytes[0]===0xEF&&bytes[1]===0xBB&&bytes[2]===0xBF){bytes=bytes.subarray(3);hadBom=true;}let raw='';try{raw=new TextDecoder('utf-8',{fatal:true}).decode(bytes);}catch{return {lineNumber,valid:false,kind:'utf8',error:t('invalidUtf8'),raw:''};}if(raw.trim()==='')return {lineNumber,valid:false,kind:'blank',error:t('blankLine'),raw};try{const value=parseJsonPreservingIntegers(raw);return {lineNumber,valid:true,raw,value,record:normalizeRecordValue(value),hadBom};}catch(error){return {lineNumber,valid:false,kind:'json',error:t('invalidJson'),detail:error?.message||'',raw};}}
       async function readLineRange(fileState,startLine,count){
         const endLine=startLine+count-1;const [cpLine,cpOffset]=findCheckpoint(fileState.analysis.checkpoints,startLine);let lineNo=cpLine,offset=cpOffset,parts=[],partsLength=0,lineStart=cpOffset;const result=[];let done=false;
         const consume=(bytes,final=false)=>{let segmentStart=0;for(let i=0;i<bytes.length;i+=1){if(bytes[i]!==10)continue;const seg=bytes.subarray(segmentStart,i);parts.push(seg);partsLength+=seg.length;let lineBytes=concatBytes(parts,partsLength);if(lineBytes.length&&lineBytes[lineBytes.length-1]===13)lineBytes=lineBytes.subarray(0,lineBytes.length-1);if(lineNo>=startLine&&lineNo<=endLine)result.push(parseLineBytes(lineBytes,lineNo));lineNo+=1;parts=[];partsLength=0;segmentStart=i+1;lineStart=offset+i+1;if(lineNo>endLine){done=true;break;}}if(!done&&segmentStart<bytes.length){const seg=bytes.subarray(segmentStart);parts.push(seg);partsLength+=seg.length;}if(final&&!done&&partsLength>0){let lineBytes=concatBytes(parts,partsLength);if(lineBytes.length&&lineBytes[lineBytes.length-1]===13)lineBytes=lineBytes.subarray(0,lineBytes.length-1);if(lineNo>=startLine&&lineNo<=endLine)result.push(parseLineBytes(lineBytes,lineNo));done=true;}};
