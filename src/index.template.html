@@ -724,13 +724,13 @@
       function isRecordObject(value){return value!==null&&typeof value==='object'&&!Array.isArray(value)&&!(value instanceof JsonlExactInteger);}
       function parseJsonPreservingIntegers(raw){
         const marker='\u0000JSONL_INT_'+Math.random().toString(36).slice(2)+'_';
-        let masked='',inString=false,escaped=false,i=0;const integers=[];
+        let masked='',inString=false,escaped=false,i=0;const integers=[];const numberPattern=/-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/y;
         while(i<raw.length){
           const ch=raw[i];
           if(inString){masked+=ch;if(escaped)escaped=false;else if(ch==='\\')escaped=true;else if(ch==='"')inString=false;i++;continue;}
           if(ch==='"'){inString=true;masked+=ch;i++;continue;}
           if(ch==='-'||(ch>='0'&&ch<='9')){
-            const match=/^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/.exec(raw.slice(i));
+            numberPattern.lastIndex=i;const match=numberPattern.exec(raw);
             if(match){
               const token=match[0];
               if(/^-?(?:0|[1-9]\d*)$/.test(token)&&!Number.isSafeInteger(Number(token))){

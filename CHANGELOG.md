@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.3 - pending release
+
+- Preserve integer literals larger than JavaScript's safe integer range in Table/Record previews, nested cells and CSV, including exact integer sorting.
+- Protect CSV strings against spreadsheet formula interpretation and disambiguate conflicting CSV header names.
+- Separate the virtual `__value` field from a real object field; fix file-tab close button keyboard activation.
+- Fix English/Japanese README standalone download links and align metadata.
+- Add data-integrity regression coverage.
+
 ## Unreleased
 
 - Move only the lower informational footer version to the end of Help. Preserve the existing 620px phone hiding for that version, the header version, and the footer name and local-processing wording. No parser, data, export, dependency, or version changes.

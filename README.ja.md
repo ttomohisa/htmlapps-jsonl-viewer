@@ -39,10 +39,10 @@ GitHub Pagesから最初のHTMLを読み込んだ後、選択したファイル�
 
 ### 単一HTMLをダウンロードして使う
 
-1. リポジトリから [`dist/index.html`](https://github.com/ttomohisa/htmlapps-jsonl-viewer/blob/main/dist/index.html) をダウンロードします。
+1. [GitHub Releases](https://github.com/ttomohisa/htmlapps-jsonl-viewer/releases/latest) の「Assets」から通常版HTMLをダウンロードします（`dist/` はビルド生成物で、リポジトリにはコミットしていません）。
 2. 最新のChromiumベースブラウザ、Firefox、Safariで直接開きます。
 
-`dist/index.self-extract.html` も収録しています。こちらはブラウザ内で可読版HTMLを復元してから起動するSelf-extract版です。
+GitHub ReleasesにはSelf-extract版のHTMLも収録しています。こちらはブラウザ内で可読版HTMLを復元してから起動するSelf-extract版です。
 
 ### ローカルでビルドする
 
@@ -117,6 +117,12 @@ GitHub Pages版では最初のHTML配信だけ通信が発生します。その�
 
 全体走査は単一HTML内のコードから生成したBlob Workerで実行され、外部サーバーへ通信しません。
 
+## CSV出力時の注意
+
+- 先頭に `=`、`+`、`-`、`@` などがある文字列は、表計算ソフトで数式にならないよう先頭にアポストロフィを付けて出力します。元ファイルの内容は変更しません。
+- `__line`、`__status`、`__raw` はCSVの管理列です。同名のデータフィールドは `field:` 接頭辞などで区別します。
+- 表示ページの整数リテラルは、安全な整数範囲を超えても元の桁を保持します。小数・指数表記の数値は従来どおりJavaScriptのNumberとして扱います。
+
 ## 制限事項
 
 - `.jsonl.gz` / `.ndjson.gz` には対応していません。
@@ -127,7 +133,7 @@ GitHub Pages版では最初のHTML配信だけ通信が発生します。その�
 
 ## 依存関係
 
-JSONL Viewer v1.0.1 は、実行時のサードパーティJavaScriptライブラリを同梱していません。
+JSONL Viewer v1.0.3 は、実行時のサードパーティJavaScriptライブラリを同梱していません。
 
 形式・プロジェクトに関する補足は [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) を確認してください。
 

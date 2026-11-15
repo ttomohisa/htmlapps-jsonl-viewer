@@ -127,3 +127,12 @@ Current stable Chromium, Firefox, and Safari where File API, Blob Worker, TextDe
 - Opening a modal locks background scrolling; dismissal retains the native dialog focus-return behavior.
 - Keyboard sorting restores focus to the same field button after table rendering. Sorting and source-order CSV export semantics stay unchanged.
 - Preserve the shared shield/check icon before the localized fully-local-processing label.
+
+## v1.0.3 data integrity and accessibility fixes
+
+- Preserve exact digits of unsafe integer literals (also nested and top-level) in preview and CSV; support numeric sorting of such integers. Fractional/exponent-form numbers retain Number semantics.
+- Never treat user-supplied CSV strings or field headers as spreadsheet formulas; CSV protection may add an apostrophe while source JSONL remains unchanged.
+- Produce unique CSV headers when source field names collide with metadata columns.
+- Keep top-level primitive/array `__value` statistics separate from a real object field named `__value`, including table/CSV access and sorting.
+- Nested file-tab close buttons remain keyboard-activatable without triggering the parent tab's Enter/Space handler.
+- Document correct Release download links in both README translations.

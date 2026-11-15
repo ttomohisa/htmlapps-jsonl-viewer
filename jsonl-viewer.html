@@ -648,8 +648,8 @@
     (() => {
       'use strict';
 
-      const APP_CONFIG = {"$schema":"./schemas/app-config.schema.json","name":"JSONL Viewer","nameJa":"JSONL Viewer","slug":"jsonl-viewer","version":"1.0.2","description":"Open JSONL and NDJSON files locally, inspect records, find invalid lines, and review field types.","descriptionJa":"JSONL / NDJSONファイルをブラウザー内で開き、レコード・不正行・フィールド構成・型の混在を確認します。","defaultLanguage":"auto","repository":{"owner":"ttomohisa","name":"htmlapps-jsonl-viewer"},"build":{"output":"dist/index.html","blockRuntimeNetwork":true,"selfExtract":{"enabled":true,"output":"dist/index.self-extract.html"},"sizeBudget":{"readableWarningMb":10,"selfExtractWarningMb":6}}};
-      const BUILD_MANIFEST = {"schemaVersion":2,"builder":"single-html-app-template/1.2","generatedAtUtc":"2026-11-13T16:07:34.2139020Z","app":{"name":"JSONL Viewer","slug":"jsonl-viewer","version":"1.0.2"},"dependencies":[]};
+      const APP_CONFIG = {"$schema":"./schemas/app-config.schema.json","name":"JSONL Viewer","nameJa":"JSONL Viewer","slug":"jsonl-viewer","version":"1.0.3","description":"Open JSONL and NDJSON files locally, inspect records, find invalid lines, and review field types.","descriptionJa":"JSONL / NDJSONファイルをブラウザー内で開き、レコード・不正行・フィールド構成・型の混在を確認します。","defaultLanguage":"auto","repository":{"owner":"ttomohisa","name":"htmlapps-jsonl-viewer"},"build":{"output":"dist/index.html","blockRuntimeNetwork":true,"selfExtract":{"enabled":true,"output":"dist/index.self-extract.html"},"sizeBudget":{"readableWarningMb":10,"selfExtractWarningMb":6}}};
+      const BUILD_MANIFEST = {"schemaVersion":2,"builder":"single-html-app-template/1.2","generatedAtUtc":"2026-11-13T16:07:34.2139020Z","app":{"name":"JSONL Viewer","slug":"jsonl-viewer","version":"1.0.3"},"dependencies":[]};
       const assetBundle = {"schemaVersion":2,"dependencies":{}};
       const blobUrls = new Set();
       const assetByteCache = new Map();
@@ -724,13 +724,13 @@
       function isRecordObject(value){return value!==null&&typeof value==='object'&&!Array.isArray(value)&&!(value instanceof JsonlExactInteger);}
       function parseJsonPreservingIntegers(raw){
         const marker='\u0000JSONL_INT_'+Math.random().toString(36).slice(2)+'_';
-        let masked='',inString=false,escaped=false,i=0;const integers=[];
+        let masked='',inString=false,escaped=false,i=0;const integers=[];const numberPattern=/-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/y;
         while(i<raw.length){
           const ch=raw[i];
           if(inString){masked+=ch;if(escaped)escaped=false;else if(ch==='\\')escaped=true;else if(ch==='"')inString=false;i++;continue;}
           if(ch==='"'){inString=true;masked+=ch;i++;continue;}
           if(ch==='-'||(ch>='0'&&ch<='9')){
-            const match=/^-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/.exec(raw.slice(i));
+            numberPattern.lastIndex=i;const match=numberPattern.exec(raw);
             if(match){
               const token=match[0];
               if(/^-?(?:0|[1-9]\d*)$/.test(token)&&!Number.isSafeInteger(Number(token))){
