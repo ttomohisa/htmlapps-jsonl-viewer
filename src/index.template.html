@@ -1039,7 +1039,7 @@
       function csvHeaders(fields){
         const used=new Set(['__line','__status','__raw']);
         return fields.map(field=>{
-          let label=field.virtual?'__value (top-level)':field.name;
+          let label=field.virtual&&fields.some(f=>!f.virtual&&f.name==='__value')?'__value (top-level)':field.name;
           if(used.has(label))label='field:'+label;
           let unique=label,index=2;
           while(used.has(unique)){unique=label+' ('+(index++)+')';}
