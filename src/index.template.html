@@ -686,7 +686,7 @@
           recordsRange:'{start}–{end} / {total}行', pageOf:'{page} / {pages}ページ', noRows:'表示する行がありません。', issueListCount:'{shown} / {total}件を表示', lineJump:'行 {line}',
           jsonlCopied:'現在ページのJSONLをコピーしました。', csvCopied:'現在ページのCSVをコピーしました。', csvDownloaded:'CSVを保存しました。', valueCopied:'値をコピーしました。', copyFailed:'コピーできませんでした。', csvFailed:'CSVを作成できませんでした。', noValidJsonToCopy:'現在ページにコピーできる正常なJSON行がありません。',
           removeFile:'閉じる', fileAnalyzing:'解析中', footer:'JSONL Viewer · MIT License · 行もレコードもブラウザー内で完結', bytes:'{count}バイト', records:'{count}行', nullLabel:'null', blank:'(空)', primitiveField:'__value', recordSummaryObject:'object · {count}フィールド', recordSummaryArray:'array · {count}要素', recordSummaryValue:'{type}', recordSummaryIssue:'{message}',
-          fieldPresence:'{count} / {total}', hiddenFieldCount:'ほか{count}フィールド', allColumnsHidden:'表示する列がありません。「列」から表示する列を選択してください。'
+          fieldPresence:'{count} / {total}', topLevelValueLabel:'トップレベルの値', hiddenFieldCount:'ほか{count}フィールド', allColumnsHidden:'表示する列がありません。「列」から表示する列を選択してください。'
         },
         en: {
           brandMeta:'Inspect JSONL / NDJSON locally', introTitle:'Open and inspect JSONL / NDJSON files', lead:'Review records, find invalid lines, and spot mixed field types. Large files are scanned line by line.', localBadge:'Fully local processing',
@@ -703,7 +703,7 @@
           recordsRange:'Lines {start}–{end} / {total}', pageOf:'Page {page} / {pages}', noRows:'No lines to display.', issueListCount:'Showing {shown} / {total}', lineJump:'Line {line}',
           jsonlCopied:'Copied the current page as JSONL.', csvCopied:'Copied the current page as CSV.', csvDownloaded:'Saved CSV.', valueCopied:'Copied value.', copyFailed:'Could not copy.', csvFailed:'Could not create CSV.', noValidJsonToCopy:'There are no valid JSON lines to copy on this page.',
           removeFile:'Close', fileAnalyzing:'Analyzing', footer:'JSONL Viewer · MIT License · Lines and records stay in the browser', bytes:'{count} bytes', records:'{count} lines', nullLabel:'null', blank:'(blank)', primitiveField:'__value', recordSummaryObject:'object · {count} fields', recordSummaryArray:'array · {count} items', recordSummaryValue:'{type}', recordSummaryIssue:'{message}',
-          fieldPresence:'{count} / {total}', hiddenFieldCount:'{count} more fields', allColumnsHidden:'No fields are visible. Choose fields from “Columns”.'
+          fieldPresence:'{count} / {total}', topLevelValueLabel:'top-level value', hiddenFieldCount:'{count} more fields', allColumnsHidden:'No fields are visible. Choose fields from “Columns”.'
         }
       };
 
@@ -895,7 +895,7 @@
           const name=document.createElement('span');name.className='file-tab-name';name.textContent=item.file.name;name.title=item.file.name;
           const close=document.createElement('button');close.className='file-tab-close';close.type='button';close.setAttribute('aria-label',`${t('removeFile')} ${item.file.name}`);close.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg>';
           close.addEventListener('click',event=>{event.stopPropagation();removeFile(item.id);});
-          tab.append(name,close);tab.addEventListener('click',()=>activateFile(item.id));tab.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();activateFile(item.id);}});tabs.append(tab);
+          tab.append(name,close);tab.addEventListener('click',()=>activateFile(item.id));tab.addEventListener('keydown',event=>{if(event.target===tab&&(event.key==='Enter'||event.key===' ')){event.preventDefault();activateFile(item.id);}});tabs.append(tab);
           const option=document.createElement('option');option.value=item.id;option.textContent=`${item.file.name}${item.analyzing?` · ${t('fileAnalyzing')}`:''}`;option.selected=item.id===state.activeId;select.append(option);
         });
       }
@@ -917,7 +917,7 @@
 
       function renderFields(fileState){const wrap=$('#fieldsTableWrap');wrap.replaceChildren();if(!fileState.analysis||fileState.analyzing){$('#fieldsSubtitle').textContent='';return;}$('#fieldsSubtitle').textContent=t('fieldsCount',{count:formatNumber(fileState.fields.length)});if(!fileState.fields.length){const empty=document.createElement('div');empty.className='table-empty';empty.textContent=t('noFields');wrap.append(empty);return;}
         const table=document.createElement('table');const thead=document.createElement('thead');const tr=document.createElement('tr');[t('fieldName'),t('occurrence'),t('types'),t('values')].forEach(text=>{const th=document.createElement('th');th.textContent=text;tr.append(th);});thead.append(tr);table.append(thead);const tbody=document.createElement('tbody');
-        fileState.fields.forEach(field=>{const row=document.createElement('tr');const name=document.createElement('td');const nw=document.createElement('div');nw.className='field-name-wrap';const ns=document.createElement('span');ns.className='field-name';ns.textContent=field.name;nw.append(ns);if(field.types.length>1){const badge=document.createElement('span');badge.className='type-mix-badge';badge.textContent=t('typeMixed');nw.append(badge);}name.append(nw);const presence=document.createElement('td');presence.textContent=`${((field.count/Math.max(1,fileState.analysis.valid))*100).toFixed(field.count===fileState.analysis.valid?0:1)}%`;presence.title=t('fieldPresence',{count:formatNumber(field.count),total:formatNumber(fileState.analysis.valid)});const types=document.createElement('td');const list=document.createElement('div');list.className='field-types';field.types.forEach(([type,count])=>{const chip=document.createElement('span');chip.className='field-type-chip';chip.textContent=`${type} ${formatNumber(count)}`;list.append(chip);});types.append(list);const count=document.createElement('td');count.textContent=formatNumber(field.count);row.append(name,presence,types,count);tbody.append(row);});table.append(tbody);wrap.append(table);
+        fileState.fields.forEach(field=>{const row=document.createElement('tr');const name=document.createElement('td');const nw=document.createElement('div');nw.className='field-name-wrap';const ns=document.createElement('span');ns.className='field-name';ns.textContent=field.virtual?`${field.name} (${t('topLevelValueLabel')})`:field.name;nw.append(ns);if(field.types.length>1){const badge=document.createElement('span');badge.className='type-mix-badge';badge.textContent=t('typeMixed');nw.append(badge);}name.append(nw);const presence=document.createElement('td');presence.textContent=`${((field.count/Math.max(1,fileState.analysis.valid))*100).toFixed(field.count===fileState.analysis.valid?0:1)}%`;presence.title=t('fieldPresence',{count:formatNumber(field.count),total:formatNumber(fileState.analysis.valid)});const types=document.createElement('td');const list=document.createElement('div');list.className='field-types';field.types.forEach(([type,count])=>{const chip=document.createElement('span');chip.className='field-type-chip';chip.textContent=`${type} ${formatNumber(count)}`;list.append(chip);});types.append(list);const count=document.createElement('td');count.textContent=formatNumber(field.count);row.append(name,presence,types,count);tbody.append(row);});table.append(tbody);wrap.append(table);
         if(fileState.analysis.fieldsOverflow){const note=document.createElement('div');note.className='notice';note.style.marginTop='10px';note.textContent=t('fieldLimit',{count:MAX_FIELDS});wrap.append(note);}
       }
 
@@ -950,15 +950,44 @@
       function renderDataLoading(show){$('#dataLoading').classList.toggle('show',Boolean(show));$('#dataTableWrap').classList.toggle('data-view-hidden',Boolean(show)||getActiveFile()?.viewMode==='record');$('#recordList').classList.toggle('data-view-hidden',Boolean(show)||getActiveFile()?.viewMode!=='record');}
 
       function visibleFields(fileState){return fileState.fields.filter(field=>!fileState.hiddenFields.has(field.index));}
-      function valueForField(row,field){if(!row.valid)return undefined;return row.record[field.name];}
-      function sortRows(fileState,rows){if(!fileState.sort)return rows;const {fieldName,direction}=fileState.sort;const sign=direction==='asc'?1:-1;return rows.map((row,index)=>({row,index})).sort((a,b)=>{if(!a.row.valid&&!b.row.valid)return a.index-b.index;if(!a.row.valid)return 1;if(!b.row.valid)return -1;const av=valueForField(a.row,{name:fieldName});const bv=valueForField(b.row,{name:fieldName});if(av==null&&bv==null)return a.index-b.index;if(av==null)return 1;if(bv==null)return -1;if(typeof av==='number'&&typeof bv==='number')return (av-bv)*sign||a.index-b.index;return String(av).localeCompare(String(bv),state.language==='ja'?'ja':'en',{numeric:true,sensitivity:'base'})*sign||a.index-b.index;}).map(item=>item.row);}
-      function cycleSort(fileState,fieldName){if(!fileState.sort||fileState.sort.fieldName!==fieldName)fileState.sort={fieldName,direction:'asc'};else if(fileState.sort.direction==='asc')fileState.sort={fieldName,direction:'desc'};else fileState.sort=null;renderData(fileState);}
+      function valueForField(row,field){
+        if(!row.valid||!field)return undefined;
+        const object=isRecordObject(row.value);
+        if(field.virtual)return object?undefined:row.record.__value;
+        return object?row.record[field.name]:undefined;
+      }
+      function sortRows(fileState,rows){
+        if(!fileState.sort)return rows;
+        const {fieldName,fieldIndex,direction}=fileState.sort,sign=direction==='asc'?1:-1;
+        const field=fileState.fields.find(f=>f.index===fieldIndex)||fileState.fields.find(f=>f.name===fieldName);
+        return rows.map((row,index)=>({row,index})).sort((a,b)=>{
+          if(!a.row.valid&&!b.row.valid)return a.index-b.index;
+          if(!a.row.valid)return 1;if(!b.row.valid)return -1;
+          const av=valueForField(a.row,field),bv=valueForField(b.row,field);
+          if(av==null&&bv==null)return a.index-b.index;if(av==null)return 1;if(bv==null)return -1;
+          if((typeof av==='number'||av instanceof JsonlExactInteger)&&(typeof bv==='number'||bv instanceof JsonlExactInteger)){
+            const at=String(av),bt=String(bv);let comparison=0;
+            if(/^-?\d+$/.test(at)&&/^-?\d+$/.test(bt)){
+              const ai=BigInt(at),bi=BigInt(bt);comparison=ai<bi?-1:ai>bi?1:0;
+            }else{const an=Number(at),bn=Number(bt);comparison=an<bn?-1:an>bn?1:0;}
+            return comparison*sign||a.index-b.index;
+          }
+          return String(av).localeCompare(String(bv),state.language==='ja'?'ja':'en',{numeric:true,sensitivity:'base'})*sign||a.index-b.index;
+        }).map(item=>item.row);
+      }
+      function cycleSort(fileState,fieldName,fieldIndex){
+        const index=fieldIndex??fileState.fields.find(f=>f.name===fieldName)?.index;
+        if(!fileState.sort||fileState.sort.fieldIndex!==index)fileState.sort={fieldName,fieldIndex:index,direction:'asc'};
+        else if(fileState.sort.direction==='asc')fileState.sort={fieldName,fieldIndex:index,direction:'desc'};
+        else fileState.sort=null;
+        renderData(fileState);
+      }
       function cellNode(value){const span=document.createElement('span');if(value===null){span.className='null-value';span.textContent=t('nullLabel');return span;}const text=cellText(value);span.textContent=text;span.title=text;return span;}
       function renderTable(fileState){
         const wrap=$('#dataTableWrap');wrap.replaceChildren();let rows=sortRows(fileState,[...fileState.rows]);const fields=visibleFields(fileState);const hasIssues=rows.some(row=>!row.valid);
         if(!rows.length){const empty=document.createElement('div');empty.className='table-empty';empty.textContent=t('noRows');wrap.append(empty);return;}
         if(!fields.length&&!hasIssues){const empty=document.createElement('div');empty.className='table-empty';empty.textContent=t('allColumnsHidden');wrap.append(empty);return;}
-        const table=document.createElement('table');const thead=document.createElement('thead');const tr=document.createElement('tr');const lineTh=document.createElement('th');lineTh.textContent=t('line');tr.append(lineTh);const statusTh=document.createElement('th');statusTh.textContent=t('status');tr.append(statusTh);if(hasIssues){const rawTh=document.createElement('th');rawTh.textContent=t('raw');tr.append(rawTh);}fields.forEach(field=>{const th=document.createElement('th');const button=document.createElement('button');button.className='sort-button';button.type='button';button.textContent=field.name;if(fileState.sort?.fieldName===field.name)button.classList.add(fileState.sort.direction);button.dataset.sortIndex=String(field.index);button.addEventListener('click',()=>{const restoreFocus=document.activeElement===button;cycleSort(fileState,field.name);if(restoreFocus)wrap.querySelector(`[data-sort-index="${field.index}"]`)?.focus();});th.append(button);tr.append(th);});thead.append(tr);table.append(thead);const tbody=document.createElement('tbody');
+        const table=document.createElement('table');const thead=document.createElement('thead');const tr=document.createElement('tr');const lineTh=document.createElement('th');lineTh.textContent=t('line');tr.append(lineTh);const statusTh=document.createElement('th');statusTh.textContent=t('status');tr.append(statusTh);if(hasIssues){const rawTh=document.createElement('th');rawTh.textContent=t('raw');tr.append(rawTh);}fields.forEach(field=>{const th=document.createElement('th');const button=document.createElement('button');button.className='sort-button';button.type='button';button.textContent=field.virtual?`${field.name} (${t('topLevelValueLabel')})`:field.name;if(fileState.sort?.fieldIndex===field.index)button.classList.add(fileState.sort.direction);button.dataset.sortIndex=String(field.index);button.addEventListener('click',()=>{const restoreFocus=document.activeElement===button;cycleSort(fileState,field.name,field.index);if(restoreFocus)wrap.querySelector(`[data-sort-index="${field.index}"]`)?.focus();});th.append(button);tr.append(th);});thead.append(tr);table.append(thead);const tbody=document.createElement('tbody');
         rows.forEach(row=>{const tr=document.createElement('tr');const line=document.createElement('td');line.className='line-cell';line.textContent=formatNumber(row.lineNumber);const status=document.createElement('td');const badge=document.createElement('span');badge.className=row.valid?'ok-badge':'issue-badge';badge.textContent=t(row.valid?'ok':'issue');status.append(badge);tr.append(line,status);if(hasIssues){const rawTd=document.createElement('td');if(!row.valid){const raw=document.createElement('div');raw.className='raw-invalid';raw.textContent=`${row.error}: ${row.raw||''}`;rawTd.append(raw);}tr.append(rawTd);}fields.forEach(field=>{const td=document.createElement('td');if(row.valid){const value=valueForField(row,field);const button=document.createElement('button');button.className='cell-button';button.type='button';button.append(cellNode(value));button.addEventListener('click',()=>openCell(row,field.name,value));td.append(button);}tr.append(td);});tbody.append(tr);});table.append(tbody);wrap.append(table);
       }
       function renderRecords(fileState){
@@ -998,11 +1027,38 @@
       }
 
       function openCell(row,fieldName,value){$('#cellLine').textContent=formatNumber(row.lineNumber);$('#cellField').textContent=fieldName;$('#cellType').textContent=typeOfValue(value);const text=prettyValue(value);$('#cellValue').textContent=text||t('blank');state.activeCellText=text;$('#cellDialog').showModal();}
-      function renderColumnsDialog(fileState){const list=$('#columnsList');list.replaceChildren();fileState.fields.forEach(field=>{const label=document.createElement('label');label.className='column-option';const input=document.createElement('input');input.type='checkbox';input.checked=!fileState.hiddenFields.has(field.index);input.dataset.index=String(field.index);const span=document.createElement('span');span.textContent=field.name;label.append(input,span);list.append(label);});}
+      function renderColumnsDialog(fileState){const list=$('#columnsList');list.replaceChildren();fileState.fields.forEach(field=>{const label=document.createElement('label');label.className='column-option';const input=document.createElement('input');input.type='checkbox';input.checked=!fileState.hiddenFields.has(field.index);input.dataset.index=String(field.index);const span=document.createElement('span');span.textContent=field.virtual?`${field.name} (${t('topLevelValueLabel')})`:field.name;label.append(input,span);list.append(label);});}
       async function jumpToLine(fileState,line){fileState.page=Math.max(1,Math.ceil(line/fileState.pageSize));fileState.sort=null;fileState.viewMode='table';state.activeId=fileState.id;setMobilePage('data');renderFileManager();await readPage(fileState);requestAnimationFrame(()=>{const rows=$$('#dataTableWrap tbody tr');const idx=(line-1)%fileState.pageSize;rows[idx]?.scrollIntoView({block:'center',behavior:'smooth'});});}
 
-      function csvEscape(value){const text=String(value??'');return /[",\r\n]/.test(text)?`"${text.replaceAll('"','""')}"`:text;}
-      function buildCurrentCsv(fileState){const fields=visibleFields(fileState);const lines=[];lines.push(['__line','__status','__raw',...fields.map(field=>field.name)].map(csvEscape).join(','));for(const row of fileState.rows){const values=[row.lineNumber,row.valid?'valid':'review',row.valid?'':row.raw];for(const field of fields){const value=row.valid?valueForField(row,field):undefined;values.push(value===undefined?'':cellText(value));}lines.push(values.map(csvEscape).join(','));}return lines.join('\r\n');}
+      function csvEscape(value){
+        let text=String(value??'');
+        // Excel-compatible consumers must not evaluate untrusted text as a formula.
+        if(typeof value==='string'&&(/^[\u0000-\u0020]*[=+@-]/.test(text)||/^[\t\r\n]/.test(text)))text="'"+text;
+        return /[",\r\n]/.test(text)?`"${text.replaceAll('"','""')}"`:text;
+      }
+      function csvHeaders(fields){
+        const used=new Set(['__line','__status','__raw']);
+        return fields.map(field=>{
+          let label=field.virtual?'__value (top-level)':field.name;
+          if(used.has(label))label='field:'+label;
+          let unique=label,index=2;
+          while(used.has(unique)){unique=label+' ('+(index++)+')';}
+          used.add(unique);return unique;
+        });
+      }
+      function buildCurrentCsv(fileState){
+        const fields=visibleFields(fileState),lines=[];
+        lines.push(['__line','__status','__raw',...csvHeaders(fields)].map(csvEscape).join(','));
+        for(const row of fileState.rows){
+          const values=[row.lineNumber,row.valid?'valid':'review',row.valid?'':row.raw];
+          for(const field of fields){
+            const value=row.valid?valueForField(row,field):undefined;
+            values.push(value===undefined?'':(typeof value==='number'||value instanceof JsonlExactInteger?value:cellText(value)));
+          }
+          lines.push(values.map(csvEscape).join(','));
+        }
+        return lines.join('\r\n');
+      }
       function buildCurrentJsonl(fileState){return fileState.rows.filter(row=>row.valid).map(row=>row.raw).join('\n');}
       function normalizedFilenameBase(){const active=getActiveFile();const fallback=active?`${basename(active.file.name)}-preview`:APP_CONFIG.slug;const input=$('#outputFilename');const cleaned=input.value.trim().replace(/[\\/:*?"<>|\u0000-\u001f]/g,'-').replace(/\.+$/g,'').trim();let base=cleaned.replace(/\.csv$/i,'')||fallback;if(/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(base))base=`${base}-file`;base=base.slice(0,120);input.value=base;if(active)active.outputFilename=base;return base;}
       async function copyText(text,isCurrent=()=>true,exact=false){
