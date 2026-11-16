@@ -1,10 +1,13 @@
-# Publishes only a human-merged PR, never an open PR preview.
-# Build/test run with read-only credentials; tag/release creation is isolated.
-name: Release on merged pull request
+# Publish only on trusted main changes (normally a human-merged PR).
+# A main-only manual run is an idempotent recovery path.
+# Build/test runs read-only; tag and Release publishing is isolated.
+name: Release on main
 
 'on':
-  pull_request_target:
-    types: [closed]
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -15,17 +18,17 @@ concurrency:
 
 jobs:
   package:
-    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+    if: github.ref == 'refs/heads/main'
     runs-on: windows-latest
     timeout-minutes: 25
     outputs:
       publish: ${{ steps.metadata.outputs.publish }}
       tag: ${{ steps.metadata.outputs.tag }}
     steps:
-      - name: Checkout reviewed merge commit (read-only)
+      - name: Checkout trusted main commit (read-only)
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          ref: ${{ github.sha }}
           persist-credentials: false
       - name: Set up Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
@@ -82,10 +85,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout merged revision for tag creation
+      - name: Checkout published main revision for tag creation
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
       - name: Download verified release package
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
@@ -97,7 +100,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ needs.package.outputs.tag }}
-          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          MERGE_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
           tag="$RELEASE_TAG"
