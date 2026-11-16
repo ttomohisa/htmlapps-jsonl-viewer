@@ -2,6 +2,8 @@
 
 ## v1.0.3 - pending release
 
+- Recover post-merge release creation by triggering on trusted `main` pushes with a main-only manual retry, and enable manual cleanup of a closed PR preview. Preserve the separated read-only packaging and write-enabled publishing jobs.
+
 - Preserve integer literals larger than JavaScript's safe integer range in Table/Record previews, nested cells and CSV, including exact integer sorting.
 - Protect CSV strings against spreadsheet formula interpretation and disambiguate conflicting CSV header names.
 - Separate the virtual `__value` field from a real object field; fix file-tab close button keyboard activation.
