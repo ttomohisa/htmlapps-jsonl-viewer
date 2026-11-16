@@ -181,6 +181,7 @@
     .file-tab-close:hover { background: color-mix(in srgb,var(--surface-hover) 84%,transparent); color: var(--text); }
     .file-tab-close svg { width: 15px; height: 15px; }
     .file-select-wrap { display: none; min-width: 0; flex: 1; }
+    .mobile-close-file { display: none; }
     select,input[type="text"],input[type="number"] {
       min-height: 40px;
       border: 1px solid var(--line);
@@ -370,6 +371,8 @@
       .file-tabs { display: none; }
       .file-select-wrap { display: block; }
       .file-select-wrap select { width: 100%; }
+      .mobile-close-file { display: grid; place-items: center; flex: 0 0 42px; width: 42px; min-height: 42px; padding: 0; }
+      .mobile-close-file svg { width: 18px; height: 18px; }
       .section-head { align-items: stretch; flex-direction: column; padding: 13px 14px; }
       .section-body { padding: 13px 14px 15px; }
       .summary-grid { gap: 7px; }
@@ -545,6 +548,9 @@
           <span class="sr-only" data-i18n="openFile">開いているファイル</span>
           <select id="fileSelect" aria-label="Open files"></select>
         </label>
+        <button class="button mobile-close-file" id="mobileCloseFileButton" type="button" data-i18n-aria-label="removeFile" aria-label="閉じる" title="閉じる">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" aria-hidden="true"><path d="M6 6 18 18M18 6 6 18"/></svg>
+        </button>
         <button class="button" id="addFilesButton" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
           <span data-i18n="addFiles">追加</span>
@@ -936,7 +942,7 @@
       }
 
       function renderFileManager(){
-        const tabs=$('#fileTabs');tabs.replaceChildren();const select=$('#fileSelect');select.replaceChildren();
+        const tabs=$('#fileTabs');tabs.replaceChildren();const select=$('#fileSelect');select.replaceChildren();const active=getActiveFile();const mobileClose=$('#mobileCloseFileButton');mobileClose.disabled=!active;mobileClose.setAttribute('aria-label',active?`${t('removeFile')} ${active.file.name}`:t('removeFile'));mobileClose.title=active?`${t('removeFile')} ${active.file.name}`:t('removeFile');
         state.files.forEach(item=>{
           const tab=document.createElement('div');tab.className=`file-tab${item.id===state.activeId?' active':''}`;tab.setAttribute('role','button');tab.tabIndex=0;tab.dataset.id=item.id;
           const name=document.createElement('span');name.className='file-tab-name';name.textContent=item.file.name;name.title=item.file.name;
@@ -1012,7 +1018,7 @@
         if(!row.valid||!field)return undefined;
         const object=isRecordObject(row.value);
         if(field.virtual)return object?undefined:row.record.__value;
-        return object?row.record[field.name]:undefined;
+        return object&&Object.prototype.hasOwnProperty.call(row.record,field.name)?row.record[field.name]:undefined;
       }
       function sortRows(fileState,rows){
         if(!fileState.sort)return rows;
@@ -1168,7 +1174,7 @@
 
       $('#chooseButton').addEventListener('click',event=>{event.stopPropagation();$('#fileInput').click();});$('#addFilesButton').addEventListener('click',()=>$('#fileInput').click());$('#fileInput').addEventListener('change',async event=>{await addFiles(event.target.files);event.target.value='';});
       const dropzone=$('#dropzone');['dragenter','dragover'].forEach(type=>dropzone.addEventListener(type,event=>{event.preventDefault();dropzone.classList.add('dragover');}));['dragleave','drop'].forEach(type=>dropzone.addEventListener(type,event=>{event.preventDefault();dropzone.classList.remove('dragover');}));dropzone.addEventListener('click',()=>$('#fileInput').click());dropzone.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();$('#fileInput').click();}});document.addEventListener('dragover',event=>{if(event.dataTransfer?.types?.includes('Files'))event.preventDefault();});document.addEventListener('drop',async event=>{if(!event.dataTransfer?.files?.length)return;event.preventDefault();dropzone.classList.remove('dragover');await addFiles(Array.from(event.dataTransfer.files));});
-      $('#fileSelect').addEventListener('change',event=>activateFile(event.target.value));$('#pageSizeSelect').addEventListener('change',async event=>{const fs=getActiveFile();if(!fs)return;fs.pageSize=Number(event.target.value);fs.page=1;await readPage(fs);});$('#prevButton').addEventListener('click',async()=>{const fs=getActiveFile();if(!fs||fs.page<=1)return;fs.page-=1;await readPage(fs);});$('#nextButton').addEventListener('click',async()=>{const fs=getActiveFile();if(!fs)return;const pages=Math.max(1,Math.ceil(fs.analysis.totalLines/fs.pageSize));if(fs.page>=pages)return;fs.page+=1;await readPage(fs);});$('#pageJump').addEventListener('change',async event=>{const fs=getActiveFile();if(!fs)return;const pages=Math.max(1,Math.ceil(fs.analysis.totalLines/fs.pageSize));const page=Math.min(pages,Math.max(1,Number.parseInt(event.target.value,10)||1));if(page===fs.page){event.target.value=String(page);return;}fs.page=page;await readPage(fs);});
+      $('#fileSelect').addEventListener('change',event=>activateFile(event.target.value));$('#mobileCloseFileButton').addEventListener('click',()=>{const active=getActiveFile();if(active)removeFile(active.id);});$('#pageSizeSelect').addEventListener('change',async event=>{const fs=getActiveFile();if(!fs)return;fs.pageSize=Number(event.target.value);fs.page=1;await readPage(fs);});$('#prevButton').addEventListener('click',async()=>{const fs=getActiveFile();if(!fs||fs.page<=1)return;fs.page-=1;await readPage(fs);});$('#nextButton').addEventListener('click',async()=>{const fs=getActiveFile();if(!fs)return;const pages=Math.max(1,Math.ceil(fs.analysis.totalLines/fs.pageSize));if(fs.page>=pages)return;fs.page+=1;await readPage(fs);});$('#pageJump').addEventListener('change',async event=>{const fs=getActiveFile();if(!fs)return;const pages=Math.max(1,Math.ceil(fs.analysis.totalLines/fs.pageSize));const page=Math.min(pages,Math.max(1,Number.parseInt(event.target.value,10)||1));if(page===fs.page){event.target.value=String(page);return;}fs.page=page;await readPage(fs);});
       $('#tableModeButton').addEventListener('click',()=>{const fs=getActiveFile();if(!fs)return;fs.viewMode='table';renderData(fs);});$('#recordModeButton').addEventListener('click',()=>{const fs=getActiveFile();if(!fs)return;fs.viewMode='record';renderData(fs);});
       $('#fieldNameFilter').addEventListener('input',event=>{const fs=getActiveFile();if(!fs)return;fs.fieldQuery=event.target.value;updateFieldsFilter(fs);});$('#columnNameFilter').addEventListener('input',updateColumnsFilter);
       $('#columnsButton').addEventListener('click',()=>{const fs=getActiveFile();if(!fs)return;renderColumnsDialog(fs);$('#columnsDialog').showModal();});$('#closeColumnsButton').addEventListener('click',()=>$('#columnsDialog').close());$('#showAllColumnsButton').addEventListener('click',()=>$$('#columnsList input[type="checkbox"]').forEach(input=>{input.checked=true;}));$('#applyColumnsButton').addEventListener('click',()=>{const fs=getActiveFile();if(!fs)return;fs.hiddenFields.clear();$$('#columnsList input[type="checkbox"]').forEach(input=>{if(!input.checked)fs.hiddenFields.add(Number(input.dataset.index));});$('#columnsDialog').close();renderData(fs);});
