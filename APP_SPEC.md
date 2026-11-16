@@ -144,3 +144,6 @@ Current stable Chromium, Firefox, and Safari where File API, Blob Worker, TextDe
 - Header title typography stays the same on Japanese/English toggles, with an explicit fixed font size and no browser text inflation.
 - At viewports up to 620px, hide the fully-local-processing badge only; keep its existing text and icon on larger screens.
 - After a pull request is merged into main, validate the exact merged commit and create an immutable SemVer tag and a GitHub Release with the readable HTML, self-extract HTML, ZIP and SHA-256 checksums. Never run PR code in the write-token release job. Skip versions that already have releases.
+
+- On phone widths (up to 620px), show the introductory hero only on Overview; hide it on Fields and Data. On desktop, the hero remains visible regardless of selected phone tab.
+- Pin the header's Latin title font family, size, and weight so switching between Japanese and English does not visually change the unchanged app name.

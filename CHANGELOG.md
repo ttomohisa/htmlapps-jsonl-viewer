@@ -9,6 +9,7 @@
 - Add data-integrity regression coverage.
 - Simplify the Japanese/English introductory copy and file-picker explanation, remove two internal lifecycle notes from Help, keep the header title size consistent across languages, and hide the fully-local badge on phones.
 - Publish a verified standalone ZIP, both single-HTML variants, checksums, a version tag, and GitHub Release after a PR is merged into main.
+- Use a consistent Latin title font in both languages, and show the mobile intro only on the Overview tab.
 
 ## Unreleased
 
