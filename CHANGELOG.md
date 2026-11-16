@@ -7,6 +7,8 @@
 - Separate the virtual `__value` field from a real object field; fix file-tab close button keyboard activation.
 - Fix English/Japanese README standalone download links and align metadata.
 - Add data-integrity regression coverage.
+- Simplify the Japanese/English introductory copy and file-picker explanation, remove two internal lifecycle notes from Help, keep the header title size consistent across languages, and hide the fully-local badge on phones.
+- Publish a verified standalone ZIP, both single-HTML variants, checksums, a version tag, and GitHub Release after a PR is merged into main.
 
 ## Unreleased
 

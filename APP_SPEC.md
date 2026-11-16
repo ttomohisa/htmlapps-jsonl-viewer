@@ -136,3 +136,11 @@ Current stable Chromium, Firefox, and Safari where File API, Blob Worker, TextDe
 - Keep top-level primitive/array `__value` statistics separate from a real object field named `__value`, including table/CSV access and sorting.
 - Nested file-tab close buttons remain keyboard-activatable without triggering the parent tab's Enter/Space handler.
 - Document correct Release download links in both README translations.
+
+## v1.0.3 follow-up: copy, display and release
+
+- Intro and dropzone use concise Japanese and English copy while preserving JSONL / NDJSON support.
+- Remove both detailed file lifecycle paragraphs from the Help dialog in both languages; preserve underlying cancel, retry and export safeguards.
+- Header title typography stays the same on Japanese/English toggles, with an explicit fixed font size and no browser text inflation.
+- At viewports up to 620px, hide the fully-local-processing badge only; keep its existing text and icon on larger screens.
+- After a pull request is merged into main, validate the exact merged commit and create an immutable SemVer tag and a GitHub Release with the readable HTML, self-extract HTML, ZIP and SHA-256 checksums. Never run PR code in the write-token release job. Skip versions that already have releases.

@@ -1,0 +1,160 @@
+# Publishes only a human-merged PR, never an open PR preview.
+# Build/test run with read-only credentials; tag/release creation is isolated.
+name: Release on merged pull request
+
+'on':
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jsonl-viewer-release
+  cancel-in-progress: false
+
+jobs:
+  package:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+    runs-on: windows-latest
+    timeout-minutes: 25
+    outputs:
+      publish: ${{ steps.metadata.outputs.publish }}
+      tag: ${{ steps.metadata.outputs.tag }}
+    steps:
+      - name: Checkout reviewed merge commit (read-only)
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+      - name: Validate version and check existing release
+        id: metadata
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = [string](Get-Content -Raw -Encoding UTF8 app.config.json | ConvertFrom-Json).version
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "Expected a stable SemVer version: $version" }
+          $tag = "v$version"
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          gh release view $tag --json tagName --jq .tagName 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "GitHub Release $tag already exists; skipping."
+            "publish=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            exit 0
+          }
+          "publish=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+      - name: Build and verify all standalone variants
+        if: steps.metadata.outputs.publish == 'true'
+        shell: pwsh
+        run: |
+          ./scripts/check-repository.ps1
+          if ($LASTEXITCODE -ne 0) { throw 'Repository verification failed.' }
+          node --test tests/mobile-help-version.test.cjs tests/ui-copy.test.cjs
+          if ($LASTEXITCODE -ne 0) { throw 'UI copy regression failed.' }
+      - name: Assemble release artifacts and checksums
+        if: steps.metadata.outputs.publish == 'true'
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ steps.metadata.outputs.tag }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tag = $env:RELEASE_TAG
+          $out = Join-Path $PWD 'release-assets'
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          $prefix = "htmlapps-jsonl-viewer-$tag"
+          Copy-Item -LiteralPath 'dist/index.html' -Destination (Join-Path $out "$prefix.html")
+          Copy-Item -LiteralPath 'dist/index.self-extract.html' -Destination (Join-Path $out "$prefix.self-extract.html")
+
+          $bundle = Join-Path $env:RUNNER_TEMP "jsonl-viewer-$tag"
+          New-Item -ItemType Directory -Force -Path $bundle | Out-Null
+          foreach ($item in @('README.md','README.ja.md','LICENSE','THIRD_PARTY_NOTICES.md')) {
+            Copy-Item -LiteralPath $item -Destination $bundle
+          }
+          foreach ($item in @('index.html','index.self-extract.html','dependency-manifest.json','self-extract-manifest.json')) {
+            Copy-Item -LiteralPath (Join-Path 'dist' $item) -Destination $bundle
+          }
+          Compress-Archive -Path (Join-Path $bundle '*') -DestinationPath (Join-Path $out "$prefix.zip") -CompressionLevel Optimal -Force
+
+          $names = @("$prefix.html","$prefix.self-extract.html","$prefix.zip")
+          $sums = foreach ($name in $names) {
+            $sum = (Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $out $name)).Hash.ToLowerInvariant()
+            "$sum  $name"
+          }
+          [System.IO.File]::WriteAllLines((Join-Path $out 'SHA256SUMS.txt'), [string[]]$sums, [System.Text.UTF8Encoding]::new($false))
+
+          $version = $tag.Substring(1)
+          $pattern = "(?ms)^## v$([regex]::Escape($version))[^\r\n]*\r?\n(?<notes>.*?)(?=^## |\z)"
+          $match = [regex]::Match((Get-Content -Raw -Encoding UTF8 CHANGELOG.md),$pattern)
+          if (-not $match.Success -or -not $match.Groups['notes'].Value.Trim()) { throw "Missing CHANGELOG notes for $tag." }
+          [System.IO.File]::WriteAllText((Join-Path $out 'RELEASE_NOTES.md'),$match.Groups['notes'].Value.Trim(),[System.Text.UTF8Encoding]::new($false))
+      - name: Upload verified release package
+        if: steps.metadata.outputs.publish == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: verified-jsonl-release
+          path: release-assets/
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    needs: package
+    if: needs.package.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout merged revision for tag creation
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+      - name: Download verified release package
+        uses: actions/download-artifact@v4
+        with:
+          name: verified-jsonl-release
+          path: release-assets
+      - name: Create immutable version tag and GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.package.outputs.tag }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          set -euo pipefail
+          tag="$RELEASE_TAG"
+          sha="$MERGE_SHA"
+          prefix="htmlapps-jsonl-viewer-$tag"
+
+          # Never tag a revision that is not in the protected main history.
+          git fetch origin main --tags
+          git merge-base --is-ancestor "$sha" origin/main
+
+          current="$(git rev-parse -q --verify "refs/tags/$tag^{commit}" 2>/dev/null || true)"
+          if [[ -n "$current" && "$current" != "$sha" ]]; then
+            echo "::error::Tag $tag already exists at $current (expected $sha)."
+            exit 1
+          fi
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists; nothing to publish."
+            exit 0
+          fi
+          if [[ -z "$current" ]]; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git tag -a "$tag" "$sha" -m "JSONL Viewer $tag"
+            git push origin "refs/tags/$tag"
+          fi
+          gh release create "$tag" \
+            "release-assets/$prefix.html" \
+            "release-assets/$prefix.self-extract.html" \
+            "release-assets/$prefix.zip" \
+            "release-assets/SHA256SUMS.txt" \
+            --verify-tag --title "JSONL Viewer $tag" \
+            --notes-file release-assets/RELEASE_NOTES.md --latest
