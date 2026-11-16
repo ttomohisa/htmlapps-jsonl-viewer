@@ -42,8 +42,12 @@ jobs:
           if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "Expected a stable SemVer version: $version" }
           $tag = "v$version"
           "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          gh release view $tag --json tagName --jq .tagName 2>$null
-          if ($LASTEXITCODE -eq 0) {
+          # Listing succeeds even when this version has not been published yet.
+          # Avoid treating an expected 404 from 'gh release view' as a PowerShell native-command error.
+          $releaseJson = gh release list --json tagName --limit 1000
+          if ($LASTEXITCODE -ne 0) { throw "Unable to check existing GitHub Releases." }
+          $publishedTags = @($releaseJson | ConvertFrom-Json | ForEach-Object { $_.tagName })
+          if ($publishedTags -contains $tag) {
             Write-Host "GitHub Release $tag already exists; skipping."
             "publish=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
             exit 0
