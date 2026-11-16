@@ -37,7 +37,7 @@ const fixture = (name, body) => ({name, mimeType:'application/json', buffer:Buff
       await page.locator('#pageSizeSelect').selectOption('50');
       await page.waitForFunction(()=>document.querySelectorAll('#dataTableWrap tbody tr').length===50);
       await page.locator('#nextButton').click();
-      await page.waitForFunction(()=>document.querySelector('#dataTableWrap tbody tr td').textContent==='51');
+      await page.waitForFunction(()=>document.querySelector('#dataTableWrap tbody tr td')?.textContent==='51');
       await page.locator('#languageButton').click();assert.equal(await page.locator('html').getAttribute('lang'),'ja');
       await page.locator('#helpButton').focus();await page.keyboard.press('Enter');assert.equal(await page.locator('#helpDialog').evaluate(x=>x.open),true);await page.keyboard.press('Escape');
       await page.setViewportSize({width:320,height:700});await page.locator('[data-mobile-target="data"]').click();
