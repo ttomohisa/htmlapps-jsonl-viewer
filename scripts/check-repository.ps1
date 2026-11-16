@@ -251,8 +251,16 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
 if ($LASTEXITCODE -ne 0) { throw "Application file lifecycle regression checks failed." }
 & node (Join-Path $Root "scripts/test-record-copy.cjs") (Join-Path $Root "src/index.template.html") (Join-Path $Root "dist/index.html") (Join-Path $Root "jsonl-viewer.html") (Join-Path $Root "dist/index.self-extract.html")
 if ($LASTEXITCODE -ne 0) { throw "Application record-copy regression checks failed." }
+& node (Join-Path $Root "scripts/test-data-integrity.cjs")
+if ($LASTEXITCODE -ne 0) { throw "Data integrity and CSV regression checks failed." }
 & node (Join-Path $Root "scripts/test-release-parity.cjs")
 if ($LASTEXITCODE -ne 0) { throw "Release artifact parity checks failed." }
+
+# Use the same read-only release-package step as the merged-PR release workflow.
+# This verifies README/NOTICE inclusion, ZIP creation, CHANGLELOG notes and SHA-256 assets in PR CI.
+& (Join-Path $Root "scripts/prepare-release-assets.ps1")
+if ($LASTEXITCODE -ne 0) { throw "Release asset packaging preflight failed." }
+
 Write-Host "[OK] Application lifecycle, record-copy and release parity checks passed." -ForegroundColor Green
 
 # Header translation and version checks across canonical release variants.
@@ -260,6 +268,9 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) { throw "Node.js 22 o
 & node (Join-Path $Root "scripts/test-header-consistency.cjs") (Join-Path $Root "src/index.template.html") (Join-Path $Root "dist/index.html") (Join-Path $Root "jsonl-viewer.html") (Join-Path $Root "dist/index.self-extract.html")
 if ($LASTEXITCODE -ne 0) { throw "Header consistency regression checks failed." }
 Write-Host "[OK] Header consistency checks passed." -ForegroundColor Green
+& node --test (Join-Path $Root "tests/ui-copy.test.cjs") (Join-Path $Root "tests/field-search-ui.test.cjs")
+if ($LASTEXITCODE -ne 0) { throw "UI copy and release contract checks failed." }
+
 
 # Responsive modal layout and keyboard sort focus checks.
 & node (Join-Path $Root "scripts/test-dialog-layout.cjs")

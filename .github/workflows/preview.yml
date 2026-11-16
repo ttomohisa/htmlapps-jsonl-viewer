@@ -39,7 +39,7 @@ jobs:
       shell: pwsh
       run: |
         ./scripts/check-repository.ps1
-        node --test tests/mobile-help-version.test.cjs
+        node --test tests/mobile-help-version.test.cjs tests/ui-copy.test.cjs tests/field-search-ui.test.cjs
         if ($LASTEXITCODE -ne 0) { throw "Footer / Help source regression failed." }
     - name: Verify phone layout in Chromium
       shell: pwsh
@@ -53,6 +53,10 @@ jobs:
         New-Item -ItemType Directory -Force -Path "test-results/mobile-layout" | Out-Null
         node scripts/mobile-layout.browser.cjs 2>&1 | Tee-Object -FilePath "test-results/mobile-layout/browser.log"
         if ($LASTEXITCODE -ne 0) { throw "Phone layout browser regression failed." }
+        node scripts/test-field-search.browser.cjs 2>&1 | Tee-Object -FilePath "test-results/mobile-layout/field-search-browser.log"
+        if ($LASTEXITCODE -ne 0) { throw "Field filtering and responsive export browser regression failed." }
+        node scripts/test-browser-smoke.cjs 2>&1 | Tee-Object -FilePath "test-results/mobile-layout/full-browser-smoke.log"
+        if ($LASTEXITCODE -ne 0) { throw "Full JSONL Worker, paging, CSV and multi-file smoke failed." }
     - name: Upload phone layout screenshots
       if: always()
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

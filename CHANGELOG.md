@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.0.3 - pending release
+
+- Preserve integer literals larger than JavaScript's safe integer range in Table/Record previews, nested cells and CSV, including exact integer sorting.
+- Protect CSV strings against spreadsheet formula interpretation and disambiguate conflicting CSV header names.
+- Separate the virtual `__value` field from a real object field; fix file-tab close button keyboard activation.
+- Fix English/Japanese README standalone download links and align metadata.
+- Add data-integrity regression coverage.
+- Simplify the Japanese/English introductory copy and file-picker explanation, remove two internal lifecycle notes from Help, keep the header title size consistent across languages, and hide the fully-local badge on phones.
+- Publish a verified standalone ZIP, both single-HTML variants, checksums, a version tag, and GitHub Release after a PR is merged into main.
+- Use a consistent Latin title font in both languages, and show the mobile intro only on the Overview tab.
+- Add a case-insensitive field-name filter to the Fields table and Columns selector, preserving column checkboxes and saved per-file visibility.
+- Make the copy/save controls expandable on phones while keeping the desktop layout and export semantics unchanged. Add source and browser regressions.
+- Fix missing values for JSON fields named `toString`, `constructor`, `__proto__` and related JavaScript prototype names showing inherited values; preserve explicitly present fields. Restore the ability to close the active file on mobile and test the empty/successor states.
+- Restore the Overview screen and its hero when the last file is closed from mobile Fields/Data.
+
 ## Unreleased
 
 - Move only the lower informational footer version to the end of Help. Preserve the existing 620px phone hiding for that version, the header version, and the footer name and local-processing wording. No parser, data, export, dependency, or version changes.

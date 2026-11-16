@@ -37,13 +37,13 @@ function harness() {
   const get=id=>{if(!nodes.has(id))nodes.set(id,element());return nodes.get(id);};
   const context=vm.createContext({document,$:get,state:{language:'en'},formatNumber:String,t:key=>key,cellText:String,openCell(){}});
   context.renderData=file=>context.renderTable(file);
-  vm.runInContext(['visibleFields','valueForField','sortRows','cellNode','renderTable','cycleSort'].map(extract).join('\n'),context);
+  vm.runInContext('class JsonlExactInteger {}\n'+['isRecordObject','visibleFields','valueForField','sortRows','cellNode','renderTable','cycleSort'].map(extract).join('\n'),context);
   return {api:context,document,get};
 }
 function descendants(node) { return node.children.flatMap(child=>[child,...descendants(child)]); }
 function fixture() {
   return {fields:[{index:0,name:'amount[\"quoted\"]'}],hiddenFields:new Set(),sort:null,
-    rows:[3,1,2].map((value,index)=>({lineNumber:index+1,valid:true,record:{'amount[\"quoted\"]':value}}))};
+    rows:[3,1,2].map((value,index)=>({lineNumber:index+1,valid:true,value:{},record:{'amount[\"quoted\"]':value}}))};
 }
 test(`${target}: sort activation retains the replaced header focus through ascending, descending and source order`,()=>{
   const h=harness(),file=fixture();h.api.renderTable(file);

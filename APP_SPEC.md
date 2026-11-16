@@ -127,3 +127,38 @@ Current stable Chromium, Firefox, and Safari where File API, Blob Worker, TextDe
 - Opening a modal locks background scrolling; dismissal retains the native dialog focus-return behavior.
 - Keyboard sorting restores focus to the same field button after table rendering. Sorting and source-order CSV export semantics stay unchanged.
 - Preserve the shared shield/check icon before the localized fully-local-processing label.
+
+## v1.0.3 data integrity and accessibility fixes
+
+- Preserve exact digits of unsafe integer literals (also nested and top-level) in preview and CSV; support numeric sorting of such integers. Fractional/exponent-form numbers retain Number semantics.
+- Never treat user-supplied CSV strings or field headers as spreadsheet formulas; CSV protection may add an apostrophe while source JSONL remains unchanged.
+- Produce unique CSV headers when source field names collide with metadata columns.
+- Keep top-level primitive/array `__value` statistics separate from a real object field named `__value`, including table/CSV access and sorting.
+- Nested file-tab close buttons remain keyboard-activatable without triggering the parent tab's Enter/Space handler.
+- Document correct Release download links in both README translations.
+
+## v1.0.3 follow-up: copy, display and release
+
+- Intro and dropzone use concise Japanese and English copy while preserving JSONL / NDJSON support.
+- Remove both detailed file lifecycle paragraphs from the Help dialog in both languages; preserve underlying cancel, retry and export safeguards.
+- Header title typography stays the same on Japanese/English toggles, with an explicit fixed font size and no browser text inflation.
+- At viewports up to 620px, hide the fully-local-processing badge only; keep its existing text and icon on larger screens.
+- After a pull request is merged into main, validate the exact merged commit and create an immutable SemVer tag and a GitHub Release with the readable HTML, self-extract HTML, ZIP and SHA-256 checksums. Never run PR code in the write-token release job. Skip versions that already have releases.
+
+- On phone widths (up to 620px), show the introductory hero only on Overview; hide it on Fields and Data. On desktop, the hero remains visible regardless of selected phone tab.
+- Pin the header's Latin title font family, size, and weight so switching between Japanese and English does not visually change the unchanged app name.
+
+## v1.0.3 field filtering and responsive export
+
+- In Fields and Columns, provide a field-name substring search (case-insensitive) with English/Japanese labels, result counts, and a distinct no-matches state. The search filters only the visible UI and never changes data or column visibility by itself.
+- Preserve the Fields query within each open file, reset the Columns dialog query whenever it reopens, and preserve all checkbox states while filtering. “Show all” applies to every field regardless of the active search.
+- On phone widths up to 620px, begin with Copy & save collapsed; allow users to expand/collapse using an accessible button. Keep the panel always visible on wider screens, with the same original CSV/JSONL controls, filenames, and output scope.
+- Verify source and built standalone artifacts, JA/EN, mobile/desktop, actual Worker-loaded sample files, filtered checkbox selections, CSV download, and no runtime network requests.
+
+## Final review fixes (v1.0.3)
+
+- Missing fields with JavaScript prototype-related names (e.g., `toString`, `constructor`, `__proto__`) return absent/blank rather than inherited Object values; explicit own fields still show their actual JSON data in table and CSV.
+- On mobile, the file selector has a 42px close button with a contextual accessible name for the active file, matching the desktop tab's close behavior. Closing the last file returns to the empty state; closing an active analyzing file remains cancellable.
+- Cover both behaviors with regression tests against actual standalone artifacts.
+
+- Closing the final file resets the mobile section to Overview, so the empty-state hero is visible and the next opened file starts in Overview.

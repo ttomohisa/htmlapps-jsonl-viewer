@@ -23,11 +23,12 @@ GitHub Pages delivers the initial HTML. After it loads, selected files are read 
 - **Scan large line-delimited files locally** — Analyze `.jsonl`, `.ndjson`, `.jsonl.txt`, and `.ndjson.txt` line by line in a local Blob Worker.
 - **Find problematic lines without losing valid data** — Count malformed JSON and blank lines as review-needed while keeping valid records available.
 - **Review field presence and type consistency** — Summarize top-level fields, presence rates, observed JSON types, and mixed types such as number / string / null.
+- **Filter field names** — Search field names in the Fields list and Columns dialog without changing saved column visibility selections.
 - **Avoid holding every parsed record** — Store sparse checkpoints during the initial scan and re-read only the requested page.
 - **Switch between Table and Record views** — Inspect current-page data as columns or pretty-printed JSON, with Cell Inspector for full values.
 - **Copy one JSON record** — Expand a valid Record and choose **Copy JSON** to copy that line’s original JSON text. Top-level strings are shown with their JSON quotes and escapes.
-- **Export the current page** — Copy valid current-page records as JSONL, or copy/save the current page as CSV.
-- **Work with multiple files** — Open several files with analysis status, issues, and data isolated per file tab. Close an analyzing tab to cancel its scan while remaining files continue.
+- **Export the current page** — Copy valid current-page records as JSONL, or copy/save the current page as CSV. On phones, open **Copy & save** to reveal the export controls.
+- **Work with multiple files** — Open several files with analysis status, issues, and data isolated per file. Close a file with its desktop tab or the mobile close button; closing an analyzing file cancels its scan while the remaining files continue.
 
 Closing the active tab loads the next file’s page automatically. Previously viewed files keep their page and view settings. Copy/save become available only after the page loads; select the tab again to retry a page-read failure.
 
@@ -39,10 +40,10 @@ Just [open the demo](https://ttomohisa.github.io/htmlapps-jsonl-viewer/). No ins
 
 ### Use the standalone HTML
 
-1. Download [`dist/index.html`](https://github.com/ttomohisa/htmlapps-jsonl-viewer/blob/main/dist/index.html) from this repository.
+1. Download the readable standalone HTML from the **Assets** section of [GitHub Releases](https://github.com/ttomohisa/htmlapps-jsonl-viewer/releases/latest) (`dist/` is generated during builds and not committed to the repository).
 2. Open it directly in a current Chromium-based browser, Firefox, or Safari.
 
-The repository also includes `dist/index.self-extract.html`, a self-extracting single-HTML variant that restores the readable standalone HTML in the browser before the app starts.
+GitHub Releases also includes a self-extracting HTML variant, a self-extracting single-HTML variant that restores the readable standalone HTML in the browser before the app starts.
 
 ### Build it locally
 
@@ -117,6 +118,12 @@ The GitHub Pages version requires one initial request to load the HTML. After th
 
 The full-file scan runs in a Blob Worker created from code embedded in the standalone HTML; it does not contact a server.
 
+## CSV export notes
+
+- Text beginning with `=`, `+`, `-`, `@`, or similar spreadsheet formula prefixes is prefixed with an apostrophe in CSV to prevent formula evaluation. Source files are unchanged.
+- `__line`, `__status`, and `__raw` are CSV metadata columns. Source fields with the same names are disambiguated with `field:` prefixes or suffixes.
+- Integer literals beyond JavaScript's safe integer range retain their original digits in the preview and CSV. Fractional and exponent-form numbers continue to use JavaScript Number semantics.
+
 ## Limitations
 
 - `.jsonl.gz` / `.ndjson.gz` are not supported.
@@ -127,7 +134,7 @@ The full-file scan runs in a Blob Worker created from code embedded in the stand
 
 ## Dependencies
 
-JSONL Viewer v1.0.1 does not bundle third-party runtime JavaScript libraries.
+JSONL Viewer v1.0.3 does not bundle third-party runtime JavaScript libraries.
 
 See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for format/project notices.
 
