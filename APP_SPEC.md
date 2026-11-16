@@ -147,3 +147,10 @@ Current stable Chromium, Firefox, and Safari where File API, Blob Worker, TextDe
 
 - On phone widths (up to 620px), show the introductory hero only on Overview; hide it on Fields and Data. On desktop, the hero remains visible regardless of selected phone tab.
 - Pin the header's Latin title font family, size, and weight so switching between Japanese and English does not visually change the unchanged app name.
+
+## v1.0.3 field filtering and responsive export
+
+- In Fields and Columns, provide a field-name substring search (case-insensitive) with English/Japanese labels, result counts, and a distinct no-matches state. The search filters only the visible UI and never changes data or column visibility by itself.
+- Preserve the Fields query within each open file, reset the Columns dialog query whenever it reopens, and preserve all checkbox states while filtering. “Show all” applies to every field regardless of the active search.
+- On phone widths up to 620px, begin with Copy & save collapsed; allow users to expand/collapse using an accessible button. Keep the panel always visible on wider screens, with the same original CSV/JSONL controls, filenames, and output scope.
+- Verify source and built standalone artifacts, JA/EN, mobile/desktop, actual Worker-loaded sample files, filtered checkbox selections, CSV download, and no runtime network requests.
