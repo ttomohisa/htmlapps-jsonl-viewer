@@ -19,6 +19,11 @@ for(const artifact of ['src/index.template.html','jsonl-viewer.html']){
   test(artifact+': header typography and local badge responsive',()=>{
     assert.match(html,/\.brand-name \{[^}]*font-size:\s*16px;/);
     assert.match(html,/\.brand-name \{ font-size: 14px; \}/);
+    assert.match(html,/#brandName \{[^}]*font-family:\s*Arial,Helvetica,sans-serif;[^}]*font-size:\s*16px;[^}]*font-weight:\s*700;/);
+    assert.match(html,/#brandName \{ font-size: 14px; \}/);
+    assert.match(html,/body\[data-mobile-page="fields"\] \.page-intro/);
+    assert.match(html,/body\[data-mobile-page="data"\] \.page-intro/);
+    assert.match(html,/document\.body\.dataset\.mobilePage=page;/);
     assert.match(html,/-webkit-text-size-adjust:\s*100%/);
     assert.match(html,/@media \(max-width: 620px\) \{[\s\S]*?\.local-badge \{ display: none; \}/);
     assert.match(html,/<div class="local-badge">/);
