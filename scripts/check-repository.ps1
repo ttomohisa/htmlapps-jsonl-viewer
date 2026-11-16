@@ -255,6 +255,12 @@ if ($LASTEXITCODE -ne 0) { throw "Application record-copy regression checks fail
 if ($LASTEXITCODE -ne 0) { throw "Data integrity and CSV regression checks failed." }
 & node (Join-Path $Root "scripts/test-release-parity.cjs")
 if ($LASTEXITCODE -ne 0) { throw "Release artifact parity checks failed." }
+
+# Use the same read-only release-package step as the merged-PR release workflow.
+# This verifies README/NOTICE inclusion, ZIP creation, CHANGLELOG notes and SHA-256 assets in PR CI.
+& (Join-Path $Root "scripts/prepare-release-assets.ps1")
+if ($LASTEXITCODE -ne 0) { throw "Release asset packaging preflight failed." }
+
 Write-Host "[OK] Application lifecycle, record-copy and release parity checks passed." -ForegroundColor Green
 
 # Header translation and version checks across canonical release variants.

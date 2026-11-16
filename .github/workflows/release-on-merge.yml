@@ -60,39 +60,7 @@ jobs:
       - name: Assemble release artifacts and checksums
         if: steps.metadata.outputs.publish == 'true'
         shell: pwsh
-        env:
-          RELEASE_TAG: ${{ steps.metadata.outputs.tag }}
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $tag = $env:RELEASE_TAG
-          $out = Join-Path $PWD 'release-assets'
-          New-Item -ItemType Directory -Force -Path $out | Out-Null
-          $prefix = "htmlapps-jsonl-viewer-$tag"
-          Copy-Item -LiteralPath 'dist/index.html' -Destination (Join-Path $out "$prefix.html")
-          Copy-Item -LiteralPath 'dist/index.self-extract.html' -Destination (Join-Path $out "$prefix.self-extract.html")
-
-          $bundle = Join-Path $env:RUNNER_TEMP "jsonl-viewer-$tag"
-          New-Item -ItemType Directory -Force -Path $bundle | Out-Null
-          foreach ($item in @('README.md','README.ja.md','LICENSE','THIRD_PARTY_NOTICES.md')) {
-            Copy-Item -LiteralPath $item -Destination $bundle
-          }
-          foreach ($item in @('index.html','index.self-extract.html','dependency-manifest.json','self-extract-manifest.json')) {
-            Copy-Item -LiteralPath (Join-Path 'dist' $item) -Destination $bundle
-          }
-          Compress-Archive -Path (Join-Path $bundle '*') -DestinationPath (Join-Path $out "$prefix.zip") -CompressionLevel Optimal -Force
-
-          $names = @("$prefix.html","$prefix.self-extract.html","$prefix.zip")
-          $sums = foreach ($name in $names) {
-            $sum = (Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $out $name)).Hash.ToLowerInvariant()
-            "$sum  $name"
-          }
-          [System.IO.File]::WriteAllLines((Join-Path $out 'SHA256SUMS.txt'), [string[]]$sums, [System.Text.UTF8Encoding]::new($false))
-
-          $version = $tag.Substring(1)
-          $pattern = "(?ms)^## v$([regex]::Escape($version))[^\r\n]*\r?\n(?<notes>.*?)(?=^## |\z)"
-          $match = [regex]::Match((Get-Content -Raw -Encoding UTF8 CHANGELOG.md),$pattern)
-          if (-not $match.Success -or -not $match.Groups['notes'].Value.Trim()) { throw "Missing CHANGELOG notes for $tag." }
-          [System.IO.File]::WriteAllText((Join-Path $out 'RELEASE_NOTES.md'),$match.Groups['notes'].Value.Trim(),[System.Text.UTF8Encoding]::new($false))
+        run: ./scripts/prepare-release-assets.ps1
       - name: Upload verified release package
         if: steps.metadata.outputs.publish == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
