@@ -55,6 +55,8 @@ jobs:
         if ($LASTEXITCODE -ne 0) { throw "Phone layout browser regression failed." }
         node scripts/test-field-search.browser.cjs 2>&1 | Tee-Object -FilePath "test-results/mobile-layout/field-search-browser.log"
         if ($LASTEXITCODE -ne 0) { throw "Field filtering and responsive export browser regression failed." }
+        node scripts/test-browser-smoke.cjs 2>&1 | Tee-Object -FilePath "test-results/mobile-layout/full-browser-smoke.log"
+        if ($LASTEXITCODE -ne 0) { throw "Full JSONL Worker, paging, CSV and multi-file smoke failed." }
     - name: Upload phone layout screenshots
       if: always()
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

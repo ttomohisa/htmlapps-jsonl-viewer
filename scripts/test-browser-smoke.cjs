@@ -5,7 +5,7 @@ const { pathToFileURL } = require('node:url');
 const { chromium } = require('playwright');
 const fixture = (name, body) => ({name, mimeType:'application/json', buffer:Buffer.from(body)});
 (async () => {
-  const browser=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||'msedge'});
+  const browser=await chromium.launch({headless:true,...(process.env.BROWSER_CHANNEL?{channel:process.env.BROWSER_CHANNEL}:{})});
   try {
     for(const artifact of ['dist/index.html','dist/index.self-extract.html']) {
       const context=await browser.newContext({viewport:{width:1360,height:900},locale:'en-US'});
