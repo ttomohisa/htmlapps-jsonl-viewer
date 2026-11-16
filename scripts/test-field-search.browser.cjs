@@ -107,29 +107,32 @@ const variants=[
         }
         // Every field must come from the JSON record, never its Object prototype.
         await page.locator('#fileInput').setInputFiles({name:'prototype.jsonl',mimeType:'text/plain',buffer:Buffer.from(
-          '{"toString":"owned","constructor":"field","__proto__":"own proto"}\\n{"only":1}\\n'
+          '{"toString":"owned","constructor":"field","__proto__":"own proto"}\n{"only":1}\n'
         )});
         await page.waitForFunction(()=>document.querySelector('#dataTableWrap').textContent.includes('owned'));
         await page.waitForFunction(()=>!document.querySelector('#downloadCsvButton').disabled);
         const protoCsvDownload=page.waitForEvent('download');
         await page.locator('#downloadCsvButton').click();
         const protoCsv=fs.readFileSync(await (await protoCsvDownload).path(),'utf8');
-        const protoLines=protoCsv.replace(/^\\uFEFF/,'').split('\\r\\n');
+        const protoLines=protoCsv.replace(/^\uFEFF/,'').split('\r\n');
         assert.ok(protoLines.length>=3,name+': prototype CSV');
         assert.match(protoLines[0],/toString/,name+': prototype-named column present');
         assert.match(protoLines[0],/constructor/,name+': constructor-named column present');
         assert.match(protoLines[0],/__proto__/,name+': proto-named column present');
         assert.ok(!protoLines[2].includes('function '),name+': missing field not filled with native function');
         assert.ok(!protoLines[2].includes('[object Object]'),name+': missing field not filled with prototype');
-        assert.ok(protoLines[2].endsWith(',,,' ) || /,1,(?:,,)?$/.test(protoLines[2]),name+': missing CSV fields empty');
+        const protoHeaders=protoLines[0].split(',');
+        const protoCells=protoLines[2].split(',');
+        for(const field of ['toString','constructor','__proto__'])assert.equal(protoCells[protoHeaders.indexOf(field)],'',name+': missing '+field+' stays blank');
+        assert.equal(protoCells[protoHeaders.indexOf('only')],'1',name+': own field stays present');
 
         const mobileClose=page.locator('#mobileCloseFileButton');
         assert.equal(await mobileClose.isVisible(),phone,name+': mobile close visible only on phones');
         if(phone){
-          assert.match(await mobileClose.getAttribute('aria-label'),/prototype\\.jsonl/,name+': filename in accessible close label');
+          assert.match(await mobileClose.getAttribute('aria-label'),/prototype\.jsonl/,name+': filename in accessible close label');
           await mobileClose.click();
           assert.equal(await page.locator('#fileSelect option').count(),1,name+': current file closed');
-          assert.match(await page.locator('#fileSelect option:checked').textContent(),/sample\\.jsonl/,name+': successor activated');
+          assert.match(await page.locator('#fileSelect option:checked').textContent(),/sample\.jsonl/,name+': successor activated');
           await mobileClose.click();
           assert.equal(await page.locator('#fileManager').isVisible(),false,name+': last file close returns empty');
           assert.equal(await page.locator('#emptyState').isVisible(),true,name+': empty state after close');
