@@ -160,3 +160,5 @@ Current stable Chromium, Firefox, and Safari where File API, Blob Worker, TextDe
 - Missing fields with JavaScript prototype-related names (e.g., `toString`, `constructor`, `__proto__`) return absent/blank rather than inherited Object values; explicit own fields still show their actual JSON data in table and CSV.
 - On mobile, the file selector has a 42px close button with a contextual accessible name for the active file, matching the desktop tab's close behavior. Closing the last file returns to the empty state; closing an active analyzing file remains cancellable.
 - Cover both behaviors with regression tests against actual standalone artifacts.
+
+- Closing the final file resets the mobile section to Overview, so the empty-state hero is visible and the next opened file starts in Overview.

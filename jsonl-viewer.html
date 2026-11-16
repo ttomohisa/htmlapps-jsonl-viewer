@@ -927,6 +927,7 @@
           // Closing and selecting a tab share the same page-loading transition.
           if(next)return activateFile(next.id);
           state.activeId=null;state.generation+=1;
+          setMobilePage('overview');
         }
         renderFileManager();renderActive();
       }

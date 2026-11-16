@@ -136,6 +136,8 @@ const variants=[
           await mobileClose.click();
           assert.equal(await page.locator('#fileManager').isVisible(),false,name+': last file close returns empty');
           assert.equal(await page.locator('#emptyState').isVisible(),true,name+': empty state after close');
+          assert.equal(await page.locator('.page-intro').isVisible(),true,name+': hero restored on empty state');
+          assert.equal(await page.locator('body').getAttribute('data-mobile-page'),'overview',name+': mobile state reset after last file closes');
         }
         assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,name+': no horizontal overflow');
         assert.deepEqual(errors,[],name+': JS errors');
