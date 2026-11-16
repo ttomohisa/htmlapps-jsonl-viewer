@@ -28,7 +28,7 @@ GitHub Pages delivers the initial HTML. After it loads, selected files are read 
 - **Switch between Table and Record views** — Inspect current-page data as columns or pretty-printed JSON, with Cell Inspector for full values.
 - **Copy one JSON record** — Expand a valid Record and choose **Copy JSON** to copy that line’s original JSON text. Top-level strings are shown with their JSON quotes and escapes.
 - **Export the current page** — Copy valid current-page records as JSONL, or copy/save the current page as CSV. On phones, open **Copy & save** to reveal the export controls.
-- **Work with multiple files** — Open several files with analysis status, issues, and data isolated per file tab. Close an analyzing tab to cancel its scan while remaining files continue.
+- **Work with multiple files** — Open several files with analysis status, issues, and data isolated per file. Close a file with its desktop tab or the mobile close button; closing an analyzing file cancels its scan while the remaining files continue.
 
 Closing the active tab loads the next file’s page automatically. Previously viewed files keep their page and view settings. Copy/save become available only after the page loads; select the tab again to retry a page-read failure.
 

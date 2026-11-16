@@ -154,3 +154,9 @@ Current stable Chromium, Firefox, and Safari where File API, Blob Worker, TextDe
 - Preserve the Fields query within each open file, reset the Columns dialog query whenever it reopens, and preserve all checkbox states while filtering. “Show all” applies to every field regardless of the active search.
 - On phone widths up to 620px, begin with Copy & save collapsed; allow users to expand/collapse using an accessible button. Keep the panel always visible on wider screens, with the same original CSV/JSONL controls, filenames, and output scope.
 - Verify source and built standalone artifacts, JA/EN, mobile/desktop, actual Worker-loaded sample files, filtered checkbox selections, CSV download, and no runtime network requests.
+
+## Final review fixes (v1.0.3)
+
+- Missing fields with JavaScript prototype-related names (e.g., `toString`, `constructor`, `__proto__`) return absent/blank rather than inherited Object values; explicit own fields still show their actual JSON data in table and CSV.
+- On mobile, the file selector has a 42px close button with a contextual accessible name for the active file, matching the desktop tab's close behavior. Closing the last file returns to the empty state; closing an active analyzing file remains cancellable.
+- Cover both behaviors with regression tests against actual standalone artifacts.

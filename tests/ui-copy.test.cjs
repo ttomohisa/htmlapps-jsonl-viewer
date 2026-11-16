@@ -28,6 +28,10 @@ for(const artifact of ['src/index.template.html','jsonl-viewer.html']){
     assert.match(html,/@media \(max-width: 620px\) \{[\s\S]*?\.local-badge \{ display: none; \}/);
     assert.match(html,/<div class="local-badge">/);
     assert.match(html,/localBadge:'Fully local processing'/);
+    assert.match(html,/id="mobileCloseFileButton"/);
+    assert.match(html,/\.mobile-close-file \{ display: none; \}/);
+    assert.match(html,/\.mobile-close-file \{ display: grid; place-items: center; flex: 0 0 42px;/);
+    assert.match(html,/Object\.prototype\.hasOwnProperty\.call\(row\.record,field\.name\)/);
     assert.match(html,/connect-src 'none'/);
   });
 }

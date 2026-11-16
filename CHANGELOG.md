@@ -12,6 +12,7 @@
 - Use a consistent Latin title font in both languages, and show the mobile intro only on the Overview tab.
 - Add a case-insensitive field-name filter to the Fields table and Columns selector, preserving column checkboxes and saved per-file visibility.
 - Make the copy/save controls expandable on phones while keeping the desktop layout and export semantics unchanged. Add source and browser regressions.
+- Fix missing values for JSON fields named `toString`, `constructor`, `__proto__` and related JavaScript prototype names showing inherited values; preserve explicitly present fields. Restore the ability to close the active file on mobile and test the empty/successor states.
 
 ## Unreleased
 

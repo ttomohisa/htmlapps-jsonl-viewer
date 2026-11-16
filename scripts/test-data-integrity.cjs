@@ -69,6 +69,18 @@ assert.equal(api.valueForField(primitive,real),undefined);
 assert.equal(api.valueForField(primitive,virtual),42);
 assert.deepEqual(api.csvHeaders([real,virtual]),['__value','__value (top-level)']);
 assert.match(source,/event\.target===tab&&\(event\.key==='Enter'/);
+const ordinary = row('{"id":1}',3);
+for (const name of ['toString','constructor','__proto__','valueOf','hasOwnProperty']) {
+  const field={name,index:0,virtual:false};
+  assert.equal(api.valueForField(ordinary,field),undefined, 'Missing '+name+' must not resolve a prototype value');
+}
+const special = row('{"toString":"own text","constructor":"own constructor","__proto__":"own proto"}',4);
+for (const [name,expected] of [['toString','own text'],['constructor','own constructor'],['__proto__','own proto']]) {
+  assert.equal(api.valueForField(special,{name,index:0,virtual:false}),expected);
+}
+const specialFields=['toString','constructor','__proto__'].map((name,index)=>({name,index,virtual:false}));
+const inheritedCsv=api.buildCurrentCsv({fields:specialFields,rows:[ordinary],hiddenFields:new Set()});
+assert.equal(inheritedCsv.split('\r\n')[1],'3,valid,,,,', 'CSV must leave missing prototype-named fields empty');
 
 async function workerStatistics() {
   const workerDeclaration=between('function workerSource()', 'async function analyzeFile(');
